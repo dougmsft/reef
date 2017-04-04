@@ -19,7 +19,6 @@
 package org.apache.reef.examples.hello;
 
 import org.apache.reef.task.Task;
-
 import javax.inject.Inject;
 
 /**
@@ -34,6 +33,11 @@ public final class HelloTask implements Task {
   @Override
   public byte[] call(final byte[] memento) {
     System.out.println("Hello, REEF!");
+    try {
+      Thread.sleep(20000);
+    } catch(Exception e) {
+      System.out.println("Sleep failed");
+    }
     return null;
   }
 }

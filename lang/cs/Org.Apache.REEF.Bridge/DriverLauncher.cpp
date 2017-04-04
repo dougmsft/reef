@@ -360,6 +360,11 @@ int main(int cArgs, char *argv[])
     GetCounts(cArgs, argv, optionCount, firstOptionOrdinal, argCount, firstArgOrdinal);
     JavaVMOption* options = GetJavaOptions(argv, optionCount, firstOptionOrdinal);
 
+    bool doWait = false;
+    while (doWait) {
+        Sleep(1000);
+    }
+
     JNIEnv *env;
     JavaVM *jvm;
     int failureCode = 0;
