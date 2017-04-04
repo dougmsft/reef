@@ -31,8 +31,10 @@
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
     <Compile Include="DistributedRDriver.cs" />
-    <Compile Include="DistributedRApp.cs" />
+    <Compile Include="DistributedRClient.cs" />
+    <Compile Include="DistributedRNetworkService.cs" />
     <Compile Include="DistributedRTask.cs" />
+    <Compile Include="DistRTaskConfigOptions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -74,6 +76,10 @@
     <ProjectReference Include="$(SolutionDir)\Org.Apache.REEF.IO\Org.Apache.REEF.IO.csproj">
       <Project>{DEC0F0A8-DBEF-4EBF-B69C-E2369C15ABF1}</Project>
       <Name>Org.Apache.REEF.IO</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Org.Apache.REEF.Network\Org.Apache.REEF.Network.csproj">
+      <Project>{883ce800-6a6a-4e0a-b7fe-c054f4f2c1dc}</Project>
+      <Name>Org.Apache.REEF.Network</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

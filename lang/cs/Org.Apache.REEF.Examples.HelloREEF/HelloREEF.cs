@@ -92,9 +92,9 @@ namespace Org.Apache.REEF.Examples.HelloREEF
                     const string connectionString = "ConnString";
                     const string continerName = "foo";
                     return HDInsightClientConfiguration.ConfigurationModule
-                        .Set(HDInsightClientConfiguration.HDInsightPasswordParameter, @"pwd")
-                        .Set(HDInsightClientConfiguration.HDInsightUsernameParameter, @"foo")
-                        .Set(HDInsightClientConfiguration.HDInsightUrlParameter, @"https://foo.azurehdinsight.net/")
+                        .Set(HDInsightClientConfiguration.HDInsightPasswordParameter, @"swreefmrs*12")
+                        .Set(HDInsightClientConfiguration.HDInsightUsernameParameter, @"sweller")
+                        .Set(HDInsightClientConfiguration.HDInsightUrlParameter, @"https://swreefdevwin.azurehdinsight.net/")
                         .Set(HDInsightClientConfiguration.JobSubmissionDirectoryPrefix, string.Format(@"/{0}/tmp", continerName))
                         .Set(AzureBlockBlobFileSystemConfiguration.ConnectionString, connectionString)
                         .Build();
@@ -105,7 +105,7 @@ namespace Org.Apache.REEF.Examples.HelloREEF
 
         public static void Main(string[] args)
         {
-            TangFactory.GetTang().NewInjector(GetRuntimeConfiguration(args.Length > 0 ? args[0] : Local)).GetInstance<HelloREEF>().Run();
+            TangFactory.GetTang().NewInjector(GetRuntimeConfiguration(args.Length > 0 ? args[0] : HDInsight)).GetInstance<HelloREEF>().Run();
         }
     }
 }

@@ -16,11 +16,14 @@
 // under the License.
 
 using System;
+using System.Diagnostics;
+using System.Globalization;
 using System.IO;
+using System.Text;
 using System.Threading;
 using Org.Apache.REEF.Common.Tasks;
+using Org.Apache.REEF.Utilities;
 using Org.Apache.REEF.Tang.Annotations;
-using System.Diagnostics;
 
 namespace Org.Apache.REEF.DistributedR
 {
@@ -29,9 +32,12 @@ namespace Org.Apache.REEF.DistributedR
     /// </summary>
     public sealed class DistributedRTask : ITask
     {
+        private readonly string _rScript;
+
         [Inject]
-        private DistributedRTask()
+        private DistributedRTask([Parameter(typeof(DistRTaskOptions.RScript))] string rScript)
         {
+            _rScript = rScript;
         }
 
         public void Dispose()
@@ -54,27 +60,46 @@ namespace Org.Apache.REEF.DistributedR
 
             WaitForDebugger();
 
-            ProcessStartInfo rProcInfo = new ProcessStartInfo();
-            rProcInfo.UseShellExecute = false;
-            rProcInfo.RedirectStandardOutput = true;
-            rProcInfo.RedirectStandardInput = true;
-            rProcInfo.FileName = "C:\\Program Files\\R\\R-3.3.3\\bin\\R.exe";
-            rProcInfo.Arguments = "--no-save";
-
-            int exitCode;
             string stdOutStr;
-            using (Process rProc = Process.Start(rProcInfo))
+            try
             {
-                StreamWriter writer = rProc.StandardInput;
-                writer.WriteLine("Sys.info()");
-                writer.WriteLine("q()");
-                stdOutStr = rProc.StandardOutput.ReadToEnd();
-                rProc.WaitForExit();
-                exitCode = rProc.ExitCode;
+                ProcessStartInfo rProcInfo = new ProcessStartInfo()
+                {
+                    UseShellExecute = false,
+                    RedirectStandardOutput = true,
+                    RedirectStandardInput = true,
+
+                    // Need general method for path for both windows and linux.
+                    // FileName = "C:\\Program Files\\Microsoft\\R Client\\R_SERVER\\bin\\R.exe",
+                    FileName = @"C:\Program Files\R\R-3.3.3\bin\R.exe",
+                    Arguments = "--no-save"
+                };
+
+                int exitCode;
+                using (Process rProc = Process.Start(rProcInfo))
+                {
+                    // Inject the script into the R interpreter.
+                    StreamWriter writer = rProc.StandardInput;
+                    writer.WriteLine(_rScript);
+                    writer.WriteLine("q()");
+
+                    // Capture the output from the interpreter.
+                    // INCLUDE STD ERROR.
+                    StringBuilder stdOutBuilder = new StringBuilder();
+                    stdOutBuilder.Append(rProc.StandardOutput.ReadToEnd());
+                    rProc.WaitForExit();
+                    exitCode = rProc.ExitCode;
+                    stdOutStr = stdOutBuilder.ToString();
+                }
+                Console.WriteLine("Exit Code: {0}", exitCode);
+                Console.WriteLine("Standard Out: {0}", stdOutStr);
             }
-            Console.WriteLine("Exit Code: {0}", exitCode);
-            Console.WriteLine("Standard Out: {0}", stdOutStr);
-            return null;
+            catch (Exception except)
+            {
+                stdOutStr = string.Format(CultureInfo.InvariantCulture, "Failed to execute R: [{0}] {1}", except, except.Message);
+            }
+
+            return ByteUtilities.StringToByteArrays(stdOutStr);
         }
     }
 }
