@@ -18,8 +18,16 @@
     <UseVSHostingProcess>false</UseVSHostingProcess>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Microsoft.Hadoop.Avro, Version=1.5.6.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Hadoop.Avro.1.5.6\lib\net45\Microsoft.Hadoop.Avro.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Newtonsoft.Json, Version=8.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.8.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -30,9 +38,25 @@
     <Compile Include="$(SolutionDir)\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
-    <Compile Include="DistributedRDriver.cs" />
-    <Compile Include="DistributedRApp.cs" />
-    <Compile Include="DistributedRTask.cs" />
+    <Compile Include="Demo.cs" />
+    <Compile Include="DriverHandler.cs" />
+    <Compile Include="DriverProxy.cs" />
+    <Compile Include="Configuration\DriverProxyConfigurationProvider.cs" />
+    <Compile Include="Network\Header.cs" />
+    <Compile Include="Network\IReceiver.cs" />
+    <Compile Include="Network\Message.cs" />
+    <Compile Include="Network\MessageHandler.cs" />
+    <Compile Include="Network\Serializer.cs" />
+    <Compile Include="Network\RResults.cs" />
+    <Compile Include="Network\RTaskMsg.cs" />
+    <Compile Include="SpinTask.cs" />
+    <Compile Include="TaskRunner.cs" />
+    <Compile Include="Network\MessageService.cs" />
+    <Compile Include="Configuration\MessageServiceOptions.cs" />
+    <Compile Include="RExecTask.cs" />
+    <Compile Include="Configuration\RExecTaskOptions.cs" />
+    <Compile Include="Configuration\DriverConfigurationProvider.cs" />
+    <Compile Include="Configuration\NetworkConfigurationProvider.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -74,6 +98,10 @@
     <ProjectReference Include="$(SolutionDir)\Org.Apache.REEF.IO\Org.Apache.REEF.IO.csproj">
       <Project>{DEC0F0A8-DBEF-4EBF-B69C-E2369C15ABF1}</Project>
       <Name>Org.Apache.REEF.IO</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Org.Apache.REEF.Network\Org.Apache.REEF.Network.csproj">
+      <Project>{883ce800-6a6a-4e0a-b7fe-c054f4f2c1dc}</Project>
+      <Name>Org.Apache.REEF.Network</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

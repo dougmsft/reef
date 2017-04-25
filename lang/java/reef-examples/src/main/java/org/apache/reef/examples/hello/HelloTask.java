@@ -19,7 +19,6 @@
 package org.apache.reef.examples.hello;
 
 import org.apache.reef.task.Task;
-
 import javax.inject.Inject;
 
 /**
