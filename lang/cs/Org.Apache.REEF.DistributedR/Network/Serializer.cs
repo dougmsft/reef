@@ -154,7 +154,7 @@ namespace Org.Apache.REEF.DistributedR.Network
             }
             catch (Exception e)
             {
-                Logr.Log(Level.Error, "Failure writing message: " + e.ToString());
+                Logr.Log(Level.Error, "Failure writing message: " + e.Message);
                 throw e;
             }
         }
@@ -186,7 +186,7 @@ namespace Org.Apache.REEF.DistributedR.Network
             }
             catch (Exception e)
             {
-                Logr.Log(Level.Error, "Failure reading message: " + e.ToString());
+                Logr.Log(Level.Error, "Failure reading message: " + e.Message);
                 throw e;
             }
         }

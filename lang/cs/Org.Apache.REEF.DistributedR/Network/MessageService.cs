@@ -72,7 +72,7 @@ namespace Org.Apache.REEF.DistributedR.Network
                 }
                 catch (Exception e)
                 {
-                    Logr.Log(Level.Info, "Connect attempt failed." + e.ToString());
+                    Logr.Log(Level.Info, "Connect attempt failed." + e.Message);
                     Thread.Sleep(250);
                 }
             }
