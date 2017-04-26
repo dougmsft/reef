@@ -16,8 +16,8 @@
 // under the License.
 
 using System;
+using System.Threading;
 using System.Collections.Concurrent;
-using System.Globalization;
 using Org.Apache.REEF.DistributedR.Network;
 using Org.Apache.REEF.Common.Tasks;
 using Org.Apache.REEF.Driver;
@@ -61,16 +61,18 @@ namespace Org.Apache.REEF.DistributedR
           IObserver<IRunningTask>,
           IObserver<ITaskMessage>,
           IObserver<ICompletedTask>,
-          IObserver<RTaskMsg>
+          IObserver<RTaskMsg>,
+          IObserver<ShutdownMsg>
     {
         private static readonly Logger Logr = Logger.GetLogger(typeof(DriverHandler));
         private const string spinTaskId = "SpinTask";
+        private bool shutdown = false;
 
         private readonly IEvaluatorRequestor evaluatorRequestor;
         private readonly MessageService network;
 
         private ConcurrentQueue<RTaskMsg> waitingTasks = new ConcurrentQueue<RTaskMsg>();
-        private ConcurrentDictionary<string, RTaskMsg> runningTasks = new ConcurrentDictionary<string, RTaskMsg>();
+        private ConcurrentDictionary<Guid, RTaskMsg> runningTasks = new ConcurrentDictionary<Guid, RTaskMsg>();
 
         /// <summary>
         /// DistributedR task management logic.
@@ -134,7 +136,7 @@ namespace Org.Apache.REEF.DistributedR
             {
                 Logr.Log(Level.Info, string.Format("SUBMITTING NEW TASK"));
                 string guidstr = taskMsg.Id.ToString();
-                runningTasks.TryAdd(taskMsg.Id.ToString(), taskMsg);
+                runningTasks.TryAdd(taskMsg.Id, taskMsg);
                 allocatedEvaluator.SubmitTask(GetTaskConfiguration(guidstr, taskMsg.Function, taskMsg.Data));
             }
             else
@@ -173,14 +175,22 @@ namespace Org.Apache.REEF.DistributedR
             if (!guidstr.ToLower().Contains(spinTaskId.ToLower()))
             {
                 // Process the return value of the task.
-                if (runningTasks.TryRemove(guidstr, out taskMsg))
+                try
                 {
-                    RResultsMsg resultsMsg = RResultsMsg.Factory(ByteUtilities.ByteArraysToString(value.Message));
-                    network.Send(resultsMsg);
+                    Guid guid = Guid.Parse(guidstr);
+                    if (runningTasks.TryRemove(guid, out taskMsg))
+                    {
+                        RResultsMsg resultsMsg = RResultsMsg.Factory(guid, ByteUtilities.ByteArraysToString(value.Message));
+                        network.Send(resultsMsg);
+                    }
+                    else
+                    {
+                        Logr.Log(Level.Error, string.Format("Unable to find meta data for completed task: " + value.Id));
+                    }
                 }
-                else
+                catch (Exception e)
                 {
-                    Logr.Log(Level.Error, string.Format("Unable to find meta data for completed task: " + value.Id));
+                    Logr.Log(Level.Error, "Failed to retrieve task results: " + e.Message);
                 }
             }
 
@@ -188,22 +198,36 @@ namespace Org.Apache.REEF.DistributedR
             {
                 Logr.Log(Level.Info, string.Format("SUBMITTING NEW TASK"));
                 guidstr = taskMsg.Id.ToString();
-                runningTasks.TryAdd(taskMsg.Id.ToString(), taskMsg);
+                runningTasks.TryAdd(taskMsg.Id, taskMsg);
                 value.ActiveContext.SubmitTask(GetTaskConfiguration(guidstr, taskMsg.Function, taskMsg.Data));
-            } 
-            else
+            }
+            else if (!shutdown)
             {
                 // Hold the evaluator with a spin task.
                 Logr.Log(Level.Info, "Submitting Spin Task");
                 value.ActiveContext.SubmitTask(GetSpinTaskConfiguration());
             }
-
-            /// value.ActiveContext.Dispose();
+            else
+            {
+                if (runningTasks.IsEmpty)
+                {
+                    network.Send(ShutdownMsg.Factory());
+                    Thread.Sleep(250);
+                    network.Stop();
+                }
+                value.ActiveContext.Dispose();
+            }
         }
         public void OnNext(RTaskMsg rTask)
         {
             Logr.Log(Level.Info, "OnNext(RTaskMsg): " + rTask.ToString());
             waitingTasks.Enqueue(rTask);
+        }
+
+        public void OnNext(ShutdownMsg shutdownMsg)
+        {
+            Logr.Log(Level.Info, "OnNext(ShutdownMsg): ");
+            shutdown = true;
         }
 
         public void OnError(Exception error)

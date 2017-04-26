@@ -43,12 +43,12 @@
     <Compile Include="DriverProxy.cs" />
     <Compile Include="Configuration\DriverProxyConfigurationProvider.cs" />
     <Compile Include="Network\Header.cs" />
-    <Compile Include="Network\IReceiver.cs" />
     <Compile Include="Network\Message.cs" />
     <Compile Include="Network\MessageHandler.cs" />
     <Compile Include="Network\Serializer.cs" />
     <Compile Include="Network\RResults.cs" />
     <Compile Include="Network\RTaskMsg.cs" />
+    <Compile Include="Network\ShutdownMsg.cs" />
     <Compile Include="SpinTask.cs" />
     <Compile Include="TaskRunner.cs" />
     <Compile Include="Network\MessageService.cs" />

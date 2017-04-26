@@ -25,7 +25,9 @@ using Org.Apache.REEF.Utilities.Logging;
 
 namespace Org.Apache.REEF.DistributedR
 {
-    class TaskRunner : IObserver<RResultsMsg>
+    class TaskRunner
+        : IObserver<RResultsMsg>,
+          IObserver<ShutdownMsg>
     {
         private static readonly Logger Logr = Logger.GetLogger(typeof(TaskRunner));
 
@@ -38,7 +40,7 @@ namespace Org.Apache.REEF.DistributedR
         private CancellationToken cancelToken;
         private Thread toDriverThread;
 
-        public TaskRunner()
+        internal TaskRunner()
         {
             // Instantiate the network service.
             IConfiguration netConfigProviderCofig = NetConfigProviderOptions.ModuleBuilder.Config
@@ -51,7 +53,7 @@ namespace Org.Apache.REEF.DistributedR
             this.network.Receiver = this;
         }
 
-        public void Start()
+        internal void Start()
         {
             Logr.Log(Level.Info, "Starting from client and from driver threads");
             this.network.Start();
@@ -63,18 +65,24 @@ namespace Org.Apache.REEF.DistributedR
             this.toDriverThread.Start();
         }
 
-        public void Stop(bool wait = false)
+        internal void Stop()
         {
             Logr.Log(Level.Info, "Shutting down");
 
-            if (!wait)
+            Submit(ShutdownMsg.Factory());
+            this.cancelToken.WaitHandle.WaitOne(3000);
+
+            if (this.cancelToken.IsCancellationRequested)
+            {
+                this.toDriverThread.Join();
+            }
+            else
             {
                 this.cancelSource.Cancel();
             }
-            this.toDriverThread.Join();
-            this.cancelSource.Dispose();
 
             this.network.Stop();
+            this.cancelSource.Dispose();
         }
 
         public void Submit(IMessage message)
@@ -121,6 +129,12 @@ namespace Org.Apache.REEF.DistributedR
         {
             Logr.Log(Level.Info, "OnNext(RTaskMsg): " + results.ToString());
             fromDriverQueue.Add(results, this.cancelToken);
+        }
+
+        public void OnNext(ShutdownMsg shutdown)
+        {
+            Logr.Log(Level.Info, "OnNext(ShutdownMsg)");
+            this.cancelSource.Cancel();
         }
 
         public void OnError(Exception error)

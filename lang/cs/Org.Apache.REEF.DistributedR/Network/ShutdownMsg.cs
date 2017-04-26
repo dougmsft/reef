@@ -21,27 +21,23 @@ using System.Runtime.Serialization;
 
 namespace Org.Apache.REEF.DistributedR.Network
 {
-    [DataContract(Name = "RResultsMsg")]
-    [Guid("A50B138D-AE52-4D09-9B4F-EC6319CC90D3")]
-    class RResultsMsg : SerializerClient<RResultsMsg>
+    [DataContract(Name = "ShutdownMsg")]
+    [Guid("09996E36-3FA7-4930-A5BF-61C2D1335A1A")]
+    public sealed class ShutdownMsg : SerializerClient<ShutdownMsg>
     {
         [DataMember]
-        public Guid Id { get; set;  }
+        public Guid Id { get; set; }
 
-        [DataMember]
-        public string Value { get; set; }
-
-        public static RResultsMsg Factory(Guid id, string value)
+        public static ShutdownMsg Factory()
         {
-            RResultsMsg message = new RResultsMsg();
-            message.Id = id;
-            message.Value = value;
-            return message;
+            ShutdownMsg shutdown = new ShutdownMsg();
+            shutdown.Id = Guid.NewGuid();
+            return shutdown;
         }
 
         public override string ToString()
         {
-            return string.Format("RResultsMsg[{0}] value = [{1}]", Id.ToString(), Value);
+            return string.Format("ShutdownMsg[{0}]", Id.ToString());
         }
     }
 }
