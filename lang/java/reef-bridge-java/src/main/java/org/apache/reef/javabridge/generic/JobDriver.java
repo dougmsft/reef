@@ -29,6 +29,7 @@ import org.apache.reef.driver.task.*;
 import org.apache.reef.io.network.naming.NameServer;
 import org.apache.reef.javabridge.*;
 import org.apache.reef.driver.restart.DriverRestartCompleted;
+import org.apache.reef.bridge.JavaClrInterop;
 import org.apache.reef.runtime.common.driver.DriverStatusManager;
 import org.apache.reef.runtime.common.driver.parameters.DefinedRuntimes;
 import org.apache.reef.runtime.common.files.REEFFileNames;
@@ -51,6 +52,7 @@ import javax.inject.Inject;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
+import java.net.InetSocketAddress;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
@@ -127,6 +129,8 @@ public final class JobDriver {
       new HashMap<>();
   private EvaluatorRequestorBridge evaluatorRequestorBridge;
 
+  private JavaClrInterop javaClrInterop;
+
 
   /**
    * Job driver constructor.
@@ -165,6 +169,7 @@ public final class JobDriver {
     this.localAddressProvider = localAddressProvider;
     this.clrProcessFactory = clrProcessFactory;
     this.definedRuntimes = definedRuntimes;
+    this.javaClrInterop = new JavaClrInterop(this.localAddressProvider);
   }
 
   private void setupBridge() {
@@ -180,24 +185,38 @@ public final class JobDriver {
         LOG.log(Level.INFO, "CLRBufferedLogHandler init complete.");
       }
 
-      final String portNumber = httpServer == null ? null : Integer.toString(httpServer.getPort());
-      if (portNumber != null) {
+      final String httpPortNumber = httpServer == null ? null : Integer.toString(httpServer.getPort());
+      if (httpPortNumber != null) {
         try {
           final File outputFileName = new File(reefFileNames.getDriverHttpEndpoint());
           BufferedWriter out = new BufferedWriter(
               new OutputStreamWriter(new FileOutputStream(outputFileName), StandardCharsets.UTF_8));
-          out.write(localAddressProvider.getLocalAddress() + ":" + portNumber + "\n");
+          out.write(localAddressProvider.getLocalAddress() + ":" + httpPortNumber + "\n");
           out.close();
         } catch (IOException ex) {
           throw new RuntimeException(ex);
         }
       }
 
+      InetSocketAddress javaBridgeAddress = javaClrInterop.getAddress();
+      final String javaBridgePort = Integer.toString(javaBridgeAddress.getPort());
+      try {
+        final File outputFileName = new File(reefFileNames.getDriverJavaBridgeEndpoint());
+        BufferedWriter out = new BufferedWriter(
+                new OutputStreamWriter(new FileOutputStream(outputFileName), StandardCharsets.UTF_8));
+        String address = localAddressProvider.getLocalAddress() + ":" + javaBridgePort;
+        LOG.log(Level.INFO, "Java bridge address: " + address);
+        out.write(address + "\n");
+        out.close();
+      } catch (IOException ex) {
+        throw new RuntimeException(ex);
+      }
+
       this.evaluatorRequestorBridge =
           new EvaluatorRequestorBridge(JobDriver.this.evaluatorRequestor, false, loggingScopeFactory,
                   JobDriver.this.definedRuntimes);
       JobDriver.this.handlerManager = new BridgeHandlerManager();
-      NativeInterop.clrSystemSetupBridgeHandlerManager(portNumber,
+      NativeInterop.clrSystemSetupBridgeHandlerManager(httpPortNumber,
           JobDriver.this.handlerManager, evaluatorRequestorBridge);
 
       try (final LoggingScope lp =

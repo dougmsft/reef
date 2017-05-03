@@ -357,6 +357,12 @@ int main(int cArgs, char *argv[])
     int  argCount;
     int  firstArgOrdinal;
 
+    bool doWait = false;
+    while (doWait)
+    {
+        Sleep(1000);
+    }
+
     GetCounts(cArgs, argv, optionCount, firstOptionOrdinal, argCount, firstArgOrdinal);
     JavaVMOption* options = GetJavaOptions(argv, optionCount, firstOptionOrdinal);
 
