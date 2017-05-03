@@ -127,6 +127,8 @@ public final class JobDriver {
       new HashMap<>();
   private EvaluatorRequestorBridge evaluatorRequestorBridge;
 
+  private AvroInterop avroInterop;
+
 
   /**
    * Job driver constructor.
@@ -165,6 +167,7 @@ public final class JobDriver {
     this.localAddressProvider = localAddressProvider;
     this.clrProcessFactory = clrProcessFactory;
     this.definedRuntimes = definedRuntimes;
+    this.avroInterop = new AvroInterop(this.nameServer, this.localAddressProvider);
   }
 
   private void setupBridge() {
@@ -180,24 +183,41 @@ public final class JobDriver {
         LOG.log(Level.INFO, "CLRBufferedLogHandler init complete.");
       }
 
-      final String portNumber = httpServer == null ? null : Integer.toString(httpServer.getPort());
-      if (portNumber != null) {
+      final String httpPortNumber = httpServer == null ? null : Integer.toString(httpServer.getPort());
+      if (httpPortNumber != null) {
         try {
           final File outputFileName = new File(reefFileNames.getDriverHttpEndpoint());
           BufferedWriter out = new BufferedWriter(
               new OutputStreamWriter(new FileOutputStream(outputFileName), StandardCharsets.UTF_8));
-          out.write(localAddressProvider.getLocalAddress() + ":" + portNumber + "\n");
+          out.write(localAddressProvider.getLocalAddress() + ":" + httpPortNumber + "\n");
           out.close();
         } catch (IOException ex) {
           throw new RuntimeException(ex);
         }
       }
 
+      final String nameServerPort = avroInterop == null ? null : Integer.toString(nameServer.getPort());
+      if (nameServerPort != null) {
+        try {
+          final File outputFileName = new File(reefFileNames.getDriverNameServerEndpoint());
+          BufferedWriter out = new BufferedWriter(
+                  new OutputStreamWriter(new FileOutputStream(outputFileName), StandardCharsets.UTF_8));
+          String address = localAddressProvider.getLocalAddress() + ":" + nameServerPort;
+          LOG.log(Level.INFO, "Name Server address: " + address);
+          out.write(address + "\n");
+          out.close();
+        } catch (IOException ex) {
+          throw new RuntimeException(ex);
+        }
+      } else {
+        LOG.log(Level.SEVERE, "Failed to get name server address");
+      }
+
       this.evaluatorRequestorBridge =
           new EvaluatorRequestorBridge(JobDriver.this.evaluatorRequestor, false, loggingScopeFactory,
                   JobDriver.this.definedRuntimes);
       JobDriver.this.handlerManager = new BridgeHandlerManager();
-      NativeInterop.clrSystemSetupBridgeHandlerManager(portNumber,
+      NativeInterop.clrSystemSetupBridgeHandlerManager(httpPortNumber,
           JobDriver.this.handlerManager, evaluatorRequestorBridge);
 
       try (final LoggingScope lp =
