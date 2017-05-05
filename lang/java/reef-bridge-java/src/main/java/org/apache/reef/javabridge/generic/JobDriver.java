@@ -196,7 +196,7 @@ public final class JobDriver {
         }
       }
 
-      final String nameServerPort = avroInterop == null ? null : Integer.toString(nameServer.getPort());
+      final String nameServerPort = javaClrInterop == null ? null : Integer.toString(nameServer.getPort());
       if (nameServerPort != null) {
         try {
           final File outputFileName = new File(reefFileNames.getDriverNameServerEndpoint());
