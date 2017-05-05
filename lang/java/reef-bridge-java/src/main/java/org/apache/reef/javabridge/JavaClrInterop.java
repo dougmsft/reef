@@ -80,8 +80,8 @@ class ExceptionHandler implements EventHandler<Exception> {
  * Avro implementation of the java interface of CLR/Java bridge.
  */
 @Private
-public final class AvroInterop {
-  private static final Logger LOG = Logger.getLogger(AvroInterop.class.getName());
+public final class JavaClrInterop {
+  private static final Logger LOG = Logger.getLogger(JavaClrInterop.class.getName());
 
   private final String javaBridgeName = "JavaBridge";
   private final String clrBridgeName = "ClrBridge";
@@ -94,7 +94,7 @@ public final class AvroInterop {
   private RemoteManager remoteManager;
   private InetSocketAddress address;
 
-  public AvroInterop(
+  public JavaClrInterop(
       NameServer nameServer,
       LocalAddressProvider localAddressProvider)
   {

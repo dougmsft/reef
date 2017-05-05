@@ -127,7 +127,7 @@ public final class JobDriver {
       new HashMap<>();
   private EvaluatorRequestorBridge evaluatorRequestorBridge;
 
-  private AvroInterop avroInterop;
+  private JavaClrInterop javaClrInterop;
 
 
   /**
@@ -167,7 +167,7 @@ public final class JobDriver {
     this.localAddressProvider = localAddressProvider;
     this.clrProcessFactory = clrProcessFactory;
     this.definedRuntimes = definedRuntimes;
-    this.avroInterop = new AvroInterop(this.nameServer, this.localAddressProvider);
+    this.javaClrInterop = new JavaClrInterop(this.nameServer, this.localAddressProvider);
   }
 
   private void setupBridge() {
