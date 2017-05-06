@@ -295,6 +295,7 @@ namespace Org.Apache.REEF.Driver.Bridge
 
             try
             {
+                JavaClrBridge javaClrBridge = new JavaClrBridge();
                 var port = injector.GetInstance<HttpServerPort>();
                 port.PortNumber = httpServerPortNumber == null
                     ? 0

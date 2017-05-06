@@ -357,7 +357,7 @@ int main(int cArgs, char *argv[])
     int  argCount;
     int  firstArgOrdinal;
 
-    bool doWait = false;
+    bool doWait = true;
     while (doWait)
     {
         Sleep(1000);
