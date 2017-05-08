@@ -19,6 +19,7 @@ using System.IO;
 using Org.Apache.REEF.Common.Files;
 using Org.Apache.REEF.IO.FileSystem;
 using Org.Apache.REEF.IO.FileSystem.Local;
+using Org.Apache.REEF.Network;
 using Org.Apache.REEF.Tang.Implementations.Tang;
 using Org.Apache.REEF.Utilities.Logging;
   
@@ -47,6 +48,29 @@ namespace Org.Apache.REEF.Driver.Bridge
                 }
             }
             Logger.Log(Level.Info, string.Format("Name Server Address: {0}", (nameServerAddress == null) ? "NULL" : nameServerAddress));
+        }
+
+        private INetworkService<string> BuildNetworkService(
+            int networkServicePort,
+            int nameServicePort,
+            string nameServiceAddr,
+            IObserver<NsMessage<string>> handler)
+        {
+            // Test injection
+            //var nameserverConf = TangFactory.GetTang().NewConfigurationBuilder()
+            // .BindNamedParameter<NamingConfigurationOptions.NameServerPort, int>(
+            //     GenericType<NamingConfigurationOptions.NameServerPort>.Class,
+            //     nameServicePort.ToString(CultureInfo.CurrentCulture))
+            // .BindNamedParameter<NamingConfigurationOptions.NameServerAddress, string>(
+            //     GenericType<NamingConfigurationOptions.NameServerAddress>.Class,
+            //     nameServiceAddr)
+            // .BindImplementation(GenericType<INameClient>.Class, GenericType<NameClient>.Class)
+            // .Build();
+            //var injector = TangFactory.GetTang().NewInjector(nameserverConf);
+            //var nameClient = injector.GetInstance<NameClient>();
+            //var remoteManagerFactory = injector.GetInstance<IRemoteManagerFactory>();
+            //return new NetworkService<string>(networkServicePort,
+            //    handler, new StringIdentifierFactory(), new StringCodec(), nameClient, injector.GetInstance<ILocalAddressProvider>(), remoteManagerFactory);
         }
     }
 }
