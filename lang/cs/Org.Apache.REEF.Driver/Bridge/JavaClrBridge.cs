@@ -22,6 +22,7 @@ using System.Net;
 using Org.Apache.REEF.Common.Files;
 using Org.Apache.REEF.IO.FileSystem;
 using Org.Apache.REEF.IO.FileSystem.Local;
+using Org.Apache.REEF.Tang.Annotations;
 using Org.Apache.REEF.Tang.Implementations.Tang;
 using Org.Apache.REEF.Utilities.Logging;
 using Org.Apache.REEF.Wake.Remote;
@@ -34,9 +35,11 @@ namespace Org.Apache.REEF.Driver.Bridge
         private static readonly Logger Logger = Logger.GetLogger(typeof(JavaClrBridge));
 
         private IRemoteManager<string> remoteManager;
+        private IObserver<string> remoteObserver;
         private BlockingCollection<string> queue = new BlockingCollection<string>();
 
-        public JavaClrBridge(ILocalAddressProvider localAddressProvider)
+        [Inject]
+        private JavaClrBridge(ILocalAddressProvider localAddressProvider)
         {
             // Instantiate a file system proxy.
             IFileSystem fileSystem = TangFactory.GetTang()
@@ -46,7 +49,7 @@ namespace Org.Apache.REEF.Driver.Bridge
             // Get the path to the bridge name server endpoint file.
             string javaBridgeAddress = null;
             REEFFileNames fileNames = new REEFFileNames();
-            using (FileStream stream = File.Open(fileNames.GetDriverNameServerEndpoint(), FileMode.Open))
+            using (FileStream stream = File.Open(fileNames.GetDriverJavaBridgeEndpoint(), FileMode.Open))
             {
                 using (StreamReader reader = new StreamReader(stream))
                 {
@@ -75,21 +78,26 @@ namespace Org.Apache.REEF.Driver.Bridge
 
         private void BuildRemoteManager(
             ILocalAddressProvider localAddressProvider,
-            string javaBridgeAddress)
+            string javaBridgeAddrStr)
         {
+            // Instantiate the remote manager.
             IRemoteManagerFactory remoteManagerFactory =
                 TangFactory.GetTang().NewInjector().GetInstance<IRemoteManagerFactory>();
-
             remoteManager = remoteManagerFactory.GetInstance(localAddressProvider.LocalAddress, new StringCodec());
-            Logger.Log(Level.Info, string.Format("Starting bridge connector on: [{0}]", remoteManager.LocalEndpoint));
 
-            string[] addressStrs = javaBridgeAddress.Split(':');
-            IPAddress javaBridgeIpAddress = IPAddress.Parse(addressStrs[0]);
-            int port = int.Parse(addressStrs[1]);
+            // Listen to the java bridge on the local end point.
+            remoteManager.RegisterObserver(remoteManager.LocalEndpoint, this);
+            Logger.Log(Level.Info, string.Format("Local observer listening to java bridge on: [{0}]", remoteManager.LocalEndpoint.ToString()));
 
-            IPEndPoint ipEndPoint = new IPEndPoint(javaBridgeIpAddress, port);
-            remoteManager.RegisterObserver(ipEndPoint, this);
-            Logger.Log(Level.Info, string.Format("Listening java bridge on: [{0}]", ipEndPoint.ToString()));
+            // Instantiate a remote observer to send messages to the java bridge.
+            string[] javaAddressStrs = javaBridgeAddrStr.Split(':');
+            IPAddress javaBridgeIpAddress = IPAddress.Parse(javaAddressStrs[0]);
+            int port = int.Parse(javaAddressStrs[1]);
+            IPEndPoint javaIpEndPoint = new IPEndPoint(javaBridgeIpAddress, port);
+            remoteObserver = remoteManager.GetRemoteObserver(javaIpEndPoint);
+            Logger.Log(Level.Info, string.Format("Connecting to java bridge on: [{0}]", javaIpEndPoint.ToString()));
+
+            remoteObserver.OnNext("!!!!!!!!CLR TO JAVA CAN YOU HEAR ME!!!!!!!");
         }
     }
 }

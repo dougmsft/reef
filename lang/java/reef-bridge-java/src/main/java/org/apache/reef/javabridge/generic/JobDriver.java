@@ -51,6 +51,7 @@ import javax.inject.Inject;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
+import java.net.InetSocketAddress;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
@@ -167,7 +168,7 @@ public final class JobDriver {
     this.localAddressProvider = localAddressProvider;
     this.clrProcessFactory = clrProcessFactory;
     this.definedRuntimes = definedRuntimes;
-    this.javaClrInterop = new JavaClrInterop(this.nameServer, this.localAddressProvider);
+    this.javaClrInterop = new JavaClrInterop(this.localAddressProvider);
   }
 
   private void setupBridge() {
@@ -196,21 +197,22 @@ public final class JobDriver {
         }
       }
 
-      final String nameServerPort = javaClrInterop == null ? null : Integer.toString(nameServer.getPort());
-      if (nameServerPort != null) {
+      InetSocketAddress javaBridgeAddress = javaClrInterop.getAddress();
+      final String javaBridgePort = javaClrInterop == null ? null : Integer.toString(javaBridgeAddress.getPort());
+      if (javaBridgePort != null) {
         try {
-          final File outputFileName = new File(reefFileNames.getDriverNameServerEndpoint());
+          final File outputFileName = new File(reefFileNames.getDriverJavaBridgeEndpoint());
           BufferedWriter out = new BufferedWriter(
                   new OutputStreamWriter(new FileOutputStream(outputFileName), StandardCharsets.UTF_8));
-          String address = localAddressProvider.getLocalAddress() + ":" + nameServerPort;
-          LOG.log(Level.INFO, "Name Server address: " + address);
+          String address = localAddressProvider.getLocalAddress() + ":" + javaBridgePort;
+          LOG.log(Level.INFO, "Java bridge address: " + address);
           out.write(address + "\n");
           out.close();
         } catch (IOException ex) {
           throw new RuntimeException(ex);
         }
       } else {
-        LOG.log(Level.SEVERE, "Failed to get name server address");
+        LOG.log(Level.SEVERE, "Failed to get java bridge address");
       }
 
       this.evaluatorRequestorBridge =

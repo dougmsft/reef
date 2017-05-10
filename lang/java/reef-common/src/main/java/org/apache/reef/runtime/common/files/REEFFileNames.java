@@ -48,7 +48,7 @@ public final class REEFFileNames {
   private static final String EVALUATOR_STDERR = "evaluator.stderr";
   private static final String EVALUATOR_STDOUT = "evaluator.stdout";
   private static final String DRIVER_HTTP_ENDPOINT_FILE_NAME = "DriverHttpEndpoint.txt";
-  private static final String DRIVER_NAME_SERVER_ENDPOINT_FILE_NAME = "DriverNameServerEndpoint.txt";
+  private static final String DRIVER_JAVA_BRIDGE_ENDPOINT_FILE_NAME = "DriverJavaBridgeEndpoint.txt";
   private static final String BRIDGE_EXE_NAME = "Org.Apache.REEF.Bridge.exe";
   private static final String SECURITY_TOKEN_IDENTIFIER_FILE = "SecurityTokenId";
   private static final String SECURITY_TOKEN_PASSWORD_FILE = "SecurityTokenPwd";
@@ -224,8 +224,8 @@ public final class REEFFileNames {
   /**
    * @return File name that contains the dfs path for the NameServerEndpoint.
    */
-  public String getDriverNameServerEndpoint() {
-    return DRIVER_NAME_SERVER_ENDPOINT_FILE_NAME;
+  public String getDriverJavaBridgeEndpoint() {
+    return DRIVER_JAVA_BRIDGE_ENDPOINT_FILE_NAME;
   }
 
   /**
