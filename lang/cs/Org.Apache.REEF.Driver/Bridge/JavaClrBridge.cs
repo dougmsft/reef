@@ -30,7 +30,7 @@ using Org.Apache.REEF.Wake.Remote.Impl;
 
 namespace Org.Apache.REEF.Driver.Bridge
 {
-    class JavaClrBridge : IObserver<string>
+    class JavaClrBridge : IObserver<IRemoteMessage<string>>
     {
         private static readonly Logger Logger = Logger.GetLogger(typeof(JavaClrBridge));
 
@@ -61,9 +61,9 @@ namespace Org.Apache.REEF.Driver.Bridge
             BuildRemoteManager(localAddressProvider, javaBridgeAddress);
         }
 
-        public void OnNext(string value)
+        public void OnNext(IRemoteMessage<string> message)
         {
-            Logger.Log(Level.Info, "JavaCLRBridge received message: [" + value + "]");
+            Logger.Log(Level.Info, "JavaCLRBridge received message: [" + message.Message + "]");
         }
 
         public void OnError(Exception error)
@@ -86,7 +86,7 @@ namespace Org.Apache.REEF.Driver.Bridge
             remoteManager = remoteManagerFactory.GetInstance(localAddressProvider.LocalAddress, new StringCodec());
 
             // Listen to the java bridge on the local end point.
-            remoteManager.RegisterObserver(remoteManager.LocalEndpoint, this);
+            remoteManager.RegisterObserver(this);
             Logger.Log(Level.Info, string.Format("Local observer listening to java bridge on: [{0}]", remoteManager.LocalEndpoint.ToString()));
 
             // Instantiate a remote observer to send messages to the java bridge.

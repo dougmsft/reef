@@ -88,7 +88,7 @@ public final class JavaClrInterop implements EventHandler<RemoteMessage<String>>
 
 
   public void onNext(RemoteMessage<String> message) {
-    LOG.log(Level.INFO, "Java bridge received message: " + message.getMessage());
+    LOG.log(Level.INFO, "Java bridge received message: [" + message.getMessage() + "]");
 
     RemoteIdentifier remoteIdentifier =  message.getIdentifier();
     LOG.log(Level.INFO, "Java bridge connecting to: " + remoteIdentifier.toString());
