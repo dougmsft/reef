@@ -24,6 +24,7 @@ using Org.Apache.REEF.Driver.Bridge.Events;
 using Org.Apache.REEF.Driver.Context;
 using Org.Apache.REEF.Driver.Evaluator;
 using Org.Apache.REEF.Driver.Task;
+using Org.Apache.REEF.Tang.Implementations.Tang;
 using Org.Apache.REEF.Utilities.Attributes;
 using Org.Apache.REEF.Utilities.Diagnostics;
 using Org.Apache.REEF.Utilities.Logging;
@@ -37,6 +38,7 @@ namespace Org.Apache.REEF.Driver.Bridge
         private static readonly Logger LOGGER = Logger.GetLogger(typeof(ClrSystemHandlerWrapper));
 
         private static DriverBridge _driverBridge;
+        private static JavaClrBridge _javaClrBridge;
 
         public static void Call_ClrSystemAllocatedEvaluatorHandler_OnNext(ulong handle, IAllocatedEvaluatorClr2Java clr2Java)
         {
@@ -295,7 +297,8 @@ namespace Org.Apache.REEF.Driver.Bridge
 
             try
             {
-                JavaClrBridge javaClrBridge = new JavaClrBridge();
+                _javaClrBridge = TangFactory.GetTang().NewInjector().GetInstance<JavaClrBridge>();
+
                 var port = injector.GetInstance<HttpServerPort>();
                 port.PortNumber = httpServerPortNumber == null
                     ? 0
