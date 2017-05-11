@@ -29,6 +29,7 @@ import org.apache.reef.driver.task.*;
 import org.apache.reef.io.network.naming.NameServer;
 import org.apache.reef.javabridge.*;
 import org.apache.reef.driver.restart.DriverRestartCompleted;
+import org.apache.reef.bridge.JavaClrInterop;
 import org.apache.reef.runtime.common.driver.DriverStatusManager;
 import org.apache.reef.runtime.common.driver.parameters.DefinedRuntimes;
 import org.apache.reef.runtime.common.files.REEFFileNames;
@@ -198,7 +199,7 @@ public final class JobDriver {
       }
 
       InetSocketAddress javaBridgeAddress = javaClrInterop.getAddress();
-      final String javaBridgePort = javaClrInterop == null ? null : Integer.toString(javaBridgeAddress.getPort());
+      final String javaBridgePort = Integer.toString(javaBridgeAddress.getPort());
       if (javaBridgePort != null) {
         try {
           final File outputFileName = new File(reefFileNames.getDriverJavaBridgeEndpoint());

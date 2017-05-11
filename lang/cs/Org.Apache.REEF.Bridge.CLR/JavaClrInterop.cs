@@ -28,18 +28,18 @@ using Org.Apache.REEF.Utilities.Logging;
 using Org.Apache.REEF.Wake.Remote;
 using Org.Apache.REEF.Wake.Remote.Impl;
 
-namespace Org.Apache.REEF.Driver.Bridge
+namespace Org.Apache.REEF.Bridge
 {
-    class JavaClrBridge : IObserver<IRemoteMessage<string>>
+    public class JavaClrInterop : IObserver<IRemoteMessage<string>>
     {
-        private static readonly Logger Logger = Logger.GetLogger(typeof(JavaClrBridge));
+        private static readonly Logger Logger = Logger.GetLogger(typeof(JavaClrInterop));
 
         private IRemoteManager<string> remoteManager;
         private IObserver<string> remoteObserver;
         private BlockingCollection<string> queue = new BlockingCollection<string>();
 
         [Inject]
-        private JavaClrBridge(ILocalAddressProvider localAddressProvider)
+        private JavaClrInterop(ILocalAddressProvider localAddressProvider)
         {
             // Instantiate a file system proxy.
             IFileSystem fileSystem = TangFactory.GetTang()

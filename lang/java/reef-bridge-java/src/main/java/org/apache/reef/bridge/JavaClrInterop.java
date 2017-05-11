@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.reef.javabridge;
+package org.apache.reef.bridge;
 
 import org.apache.reef.annotations.audience.Private;
 import org.apache.reef.tang.Injector;
@@ -32,7 +32,6 @@ import org.apache.reef.wake.remote.ports.TcpPortProvider;
 import org.apache.reef.wake.impl.LoggingEventHandler;
 import org.apache.reef.wake.remote.address.LocalAddressProvider;
 
-import java.lang.Exception;
 import java.net.InetSocketAddress;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -49,8 +48,7 @@ public final class JavaClrInterop implements EventHandler<RemoteMessage<String>>
   private InetSocketAddress inetSocketAddress;
   private EventHandler<String> sender;
 
-  public JavaClrInterop(LocalAddressProvider localAddressProvider)
-  {
+  public JavaClrInterop(final LocalAddressProvider localAddressProvider) {
     LOG.log(Level.INFO, "Java bridge interop initializing");
 
     try {
@@ -70,8 +68,7 @@ public final class JavaClrInterop implements EventHandler<RemoteMessage<String>>
         localAddressProvider, tcpPortProvider);
 
       RemoteIdentifier remoteIdentifier = remoteManager.getMyIdentifier();
-      if (remoteIdentifier instanceof SocketRemoteIdentifier)
-      {
+      if (remoteIdentifier instanceof SocketRemoteIdentifier) {
         SocketRemoteIdentifier socketIdentifier = (SocketRemoteIdentifier)remoteIdentifier;
         inetSocketAddress = socketIdentifier.getSocketAddress();
       } else {
@@ -87,7 +84,7 @@ public final class JavaClrInterop implements EventHandler<RemoteMessage<String>>
   }
 
 
-  public void onNext(RemoteMessage<String> message) {
+  public void onNext(final RemoteMessage<String> message) {
     LOG.log(Level.INFO, "Java bridge received message: [" + message.getMessage() + "]");
 
     RemoteIdentifier remoteIdentifier =  message.getIdentifier();
@@ -96,5 +93,7 @@ public final class JavaClrInterop implements EventHandler<RemoteMessage<String>>
     sender.onNext("!!!!!!!!HELLO CLR JAVA HEARS YOU!!!!!!!!");
   }
 
-  public InetSocketAddress getAddress() { return inetSocketAddress; }
+  public InetSocketAddress getAddress() {
+    return inetSocketAddress;
+  }
 }

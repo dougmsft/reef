@@ -101,7 +101,6 @@ under the License.
     <Compile Include="Bridge\IHttpHandler.cs" />
     <Compile Include="Bridge\IHttpMessage.cs" />
     <Compile Include="Bridge\ILogger.cs" />
-    <Compile Include="Bridge\JavaClrBridge.cs" />
     <Compile Include="Bridge\ReefHttpRequest.cs" />
     <Compile Include="Bridge\ReefHttpResponse.cs" />
     <Compile Include="Constants.cs" />
@@ -182,6 +181,10 @@ under the License.
     <ProjectReference Include="$(SolutionDir)\Org.Apache.REEF.Wake\Org.Apache.REEF.Wake.csproj">
       <Project>{cdfb3464-4041-42b1-9271-83af24cd5008}</Project>
       <Name>Org.Apache.REEF.Wake</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Org.Apache.REEF.Bridge.CLR\Org.Apache.REEF.Bridge.CLR.csproj">
+      <Project>{e19ff4f8-ab45-4631-8017-e18d94d882dd}</Project>
+      <Name>Org.Apache.REEF.Bridge.CLR</Name>
     </ProjectReference>
     <ProjectReference Include="..\Org.Apache.REEF.IO\Org.Apache.REEF.IO.csproj">
       <Project>{dec0f0a8-dbef-4ebf-b69c-e2369c15abf1}</Project>
