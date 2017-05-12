@@ -30,8 +30,19 @@ under the License.
   </PropertyGroup>
   <Import Project="$(SolutionDir)\build.props" />
   <ItemGroup>
+    <Reference Include="Microsoft.Avro.Core, Version=0.16.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Avro.Core.0.16.0\lib\net451\Microsoft.Avro.Core.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Microsoft.Avro.Tools, Version=0.1.0.0, Culture=neutral, processorArchitecture=AMD64">
+      <HintPath>..\packages\Microsoft.Avro.Tools.0.1.0-beta\lib\Microsoft.Avro.Tools.exe</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="Microsoft.Hadoop.Avro">
       <HintPath>$(PackagesDir)\Microsoft.Hadoop.Avro.$(AvroVersion)\lib\net45\Microsoft.Hadoop.Avro.dll</HintPath>
+    </Reference>
+    <Reference Include="Newtonsoft.Json, Version=10.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.10.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -46,6 +57,7 @@ under the License.
     <Compile Include="JavaClrInterop.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="app.config" />
     <None Include="Message\CLRInitialized.avsc" />
     <None Include="Message\SystemOnStart.avsc" />
     <None Include="Org.Apache.REEF.Bridge.CLR.nuspec" />

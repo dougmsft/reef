@@ -200,20 +200,16 @@ public final class JobDriver {
 
       InetSocketAddress javaBridgeAddress = javaClrInterop.getAddress();
       final String javaBridgePort = Integer.toString(javaBridgeAddress.getPort());
-      if (javaBridgePort != null) {
-        try {
-          final File outputFileName = new File(reefFileNames.getDriverJavaBridgeEndpoint());
-          BufferedWriter out = new BufferedWriter(
-                  new OutputStreamWriter(new FileOutputStream(outputFileName), StandardCharsets.UTF_8));
-          String address = localAddressProvider.getLocalAddress() + ":" + javaBridgePort;
-          LOG.log(Level.INFO, "Java bridge address: " + address);
-          out.write(address + "\n");
-          out.close();
-        } catch (IOException ex) {
-          throw new RuntimeException(ex);
-        }
-      } else {
-        LOG.log(Level.SEVERE, "Failed to get java bridge address");
+      try {
+        final File outputFileName = new File(reefFileNames.getDriverJavaBridgeEndpoint());
+        BufferedWriter out = new BufferedWriter(
+                new OutputStreamWriter(new FileOutputStream(outputFileName), StandardCharsets.UTF_8));
+        String address = localAddressProvider.getLocalAddress() + ":" + javaBridgePort;
+        LOG.log(Level.INFO, "Java bridge address: " + address);
+        out.write(address + "\n");
+        out.close();
+      } catch (IOException ex) {
+        throw new RuntimeException(ex);
       }
 
       this.evaluatorRequestorBridge =
