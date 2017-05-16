@@ -17,9 +17,9 @@ under the License.
 -->
 <package >
   <metadata>
-    <id>Org.Apache.REEF.Driver</id>
+    <id>Org.Apache.REEF.Bridge.CLR</id>
     <version>$version$</version>
-    <title>Org.Apache.REEF.Driver</title>
+    <title>Org.Apache.REEF.Bridge.CLR</title>
     <authors>The Apache REEF project</authors>
     <owners>The Apache REEF project</owners>
     <licenseUrl>http://www.apache.org/licenses/LICENSE-2.0</licenseUrl>
@@ -38,7 +38,7 @@ under the License.
   </metadata>
 
   <files>
-    <file src="..\bin\$Platform$\$Configuration$\Org.Apache.REEF.Driver\Org.Apache.REEF.Driver.dll" target="lib\net45" />
-    <file src="..\bin\$Platform$\$Configuration$\Org.Apache.REEF.Driver\Org.Apache.REEF.Driver.pdb" target="lib\net45" />
+    <file src="..\bin\$Platform$\$Configuration$\Org.Apache.REEF.Driver\Org.Apache.REEF.Bridge.CLR.dll" target="lib\net45" />
+    <file src="..\bin\$Platform$\$Configuration$\Org.Apache.REEF.Driver\Org.Apache.REEF.Bridge.CLR.pdb" target="lib\net45" />
   </files>
 </package>
