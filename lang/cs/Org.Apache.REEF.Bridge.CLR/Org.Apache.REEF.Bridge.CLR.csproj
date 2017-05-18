@@ -30,14 +30,6 @@ under the License.
   </PropertyGroup>
   <Import Project="$(SolutionDir)\build.props" />
   <ItemGroup>
-    <Reference Include="Microsoft.Avro.Core, Version=0.16.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.Avro.Core.0.16.0\lib\net451\Microsoft.Avro.Core.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Microsoft.Avro.Tools, Version=0.1.0.0, Culture=neutral, processorArchitecture=AMD64">
-      <HintPath>..\packages\Microsoft.Avro.Tools.0.1.0-beta\lib\Microsoft.Avro.Tools.exe</HintPath>
-      <Private>True</Private>
-    </Reference>
     <Reference Include="Microsoft.Hadoop.Avro">
       <HintPath>$(PackagesDir)\Microsoft.Hadoop.Avro.$(AvroVersion)\lib\net45\Microsoft.Hadoop.Avro.dll</HintPath>
     </Reference>
@@ -55,15 +47,13 @@ under the License.
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
     <Compile Include="JavaClrInterop.cs" />
-    <Compile Include="Message\CLRInitialized.cs" />
+    <Compile Include="Message\Header.cs" />
+    <Compile Include="Message\Protocol.cs" />
     <Compile Include="Message\SystemOnStart.cs" />
+    <Compile Include="Serializer.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
-    <None Include="MessageSource\CLRInitialized.avsc" />
-    <None Include="MessageSource\Generate-CSFromAvro.ps1" />
-    <None Include="MessageSource\README.md" />
-    <None Include="MessageSource\SystemOnStart.avsc" />
     <None Include="Org.Apache.REEF.Bridge.CLR.nuspec" />
     <None Include="packages.config" />
   </ItemGroup>
@@ -89,7 +79,9 @@ under the License.
       <Name>Org.Apache.REEF.IO</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="MessageSource\" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   <Import Project="$(PackagesDir)\StyleCop.MSBuild.$(StyleCopVersion)\build\StyleCop.MSBuild.Targets" Condition="Exists('$(PackagesDir)\StyleCop.MSBuild.$(StyleCopVersion)\build\StyleCop.MSBuild.Targets')" />

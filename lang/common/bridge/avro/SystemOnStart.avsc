@@ -27,7 +27,7 @@
       "doc": "The SystemOnStart message is sent to the CLR bridge from the Java bridge when the round trip communication path has been established.",
       "fields": [
           {
-            "name":"dateTime",
+            "name": "dateTime",
             "type": "int"
           }
       ]

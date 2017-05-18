@@ -18,18 +18,24 @@
  */
 [
   /*
-   * First message from the Java bridge to the CLR bridge.
+   * Notify Java bridge CLR bridge is ininitialized.
    */
   {
-      "namespace": "org.apache.reef.bridge.message",
-      "type": "record",
-      "name": "SystemOnStart",
-      "doc": "The SystemOnStart message is sent to the CLR bridge from the Java bridge when the round trip communication path has been established.",
-      "fields": [
-          {
-            "name":"dateTime",
-            "type": "int"
-          }
-      ]
+    "namespace": "org.apache.reef.bridge.message",
+    "type": "record",
+    "name": "Protocol",
+    "doc": "Negotiate Java/C# bridge protocol messages.",
+    "fields": [
+      {
+        "name": "offset",
+        "type": "int",
+        "doc": "The index offset of the message identifiers."
+      },
+      {
+        "name": "names",
+        "type": { "type": "array", "items": "string" },
+        "doc": "An array of message class names."
+      }
+    ]
   }
 ]

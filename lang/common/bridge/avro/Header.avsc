@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -18,18 +18,18 @@
  */
 [
   /*
-   * Notify Java bridge CLR bridge is ininitialized.
+   * Identify the next message in the Java/C# bridge protocol.
    */
   {
     "namespace": "org.apache.reef.bridge.message",
     "type": "record",
-    "name": "CLRInitialized",
-    "doc": "First message from the CLR side of the bridge after it connects to the Java side.",
+    "name": "Header",
+    "doc": "Identifies the following message in the Java/C# bridge protocol.",
     "fields": [
       {
-        "name":"initialized",
-        "doc":"Dummy payload",
-        "type": "boolean"
+        "name":"identifier",
+        "doc":"Identifier of the next message to be read.",
+        "type": "int"
       }
     ]
   }

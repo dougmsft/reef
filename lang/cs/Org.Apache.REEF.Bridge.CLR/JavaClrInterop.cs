@@ -17,8 +17,10 @@
 
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.IO;
 using System.Net;
+using org.apache.reef.bridge.message;
 using Org.Apache.REEF.Common.Files;
 using Org.Apache.REEF.IO.FileSystem;
 using Org.Apache.REEF.IO.FileSystem.Local;
@@ -30,13 +32,13 @@ using Org.Apache.REEF.Wake.Remote.Impl;
 
 namespace Org.Apache.REEF.Bridge
 {
-    public class JavaClrInterop : IObserver<IRemoteMessage<string>>
+    public class JavaClrInterop : IObserver<IRemoteMessage<byte[]>>
     {
         private static readonly Logger Logger = Logger.GetLogger(typeof(JavaClrInterop));
 
-        private IRemoteManager<string> remoteManager;
-        private IObserver<string> remoteObserver;
-        private BlockingCollection<string> queue = new BlockingCollection<string>();
+        private IRemoteManager<byte[]> remoteManager;
+        private IObserver<byte[]> remoteObserver;
+        private BlockingCollection<byte[]> queue = new BlockingCollection<byte[]>();
 
         [Inject]
         private JavaClrInterop(ILocalAddressProvider localAddressProvider)
@@ -61,9 +63,15 @@ namespace Org.Apache.REEF.Bridge
             BuildRemoteManager(localAddressProvider, javaBridgeAddress);
         }
 
-        public void OnNext(IRemoteMessage<string> message)
+        public void OnNext(IRemoteMessage<byte[]> message)
         {
-            Logger.Log(Level.Info, "JavaCLRBridge received message: [" + message.Message + "]");
+            Logger.Log(Level.Info, "!!!!!!JavaCLRBridge received message: " + message.Identifier.ToString());
+            Serializer.Read(message.Message, this);
+        }
+
+        public void OnNext(SystemOnStart systemOnStart)
+        {
+            Logger.Log(Level.Info, "!!!!!!!!JavaCLRBridge received SystemOnStart message");
         }
 
         public void OnError(Exception error)
@@ -83,7 +91,7 @@ namespace Org.Apache.REEF.Bridge
             // Instantiate the remote manager.
             IRemoteManagerFactory remoteManagerFactory =
                 TangFactory.GetTang().NewInjector().GetInstance<IRemoteManagerFactory>();
-            remoteManager = remoteManagerFactory.GetInstance(localAddressProvider.LocalAddress, new StringCodec());
+            remoteManager = remoteManagerFactory.GetInstance(localAddressProvider.LocalAddress, new ByteCodec());
 
             // Listen to the java bridge on the local end point.
             remoteManager.RegisterObserver(this);
@@ -97,7 +105,15 @@ namespace Org.Apache.REEF.Bridge
             remoteObserver = remoteManager.GetRemoteObserver(javaIpEndPoint);
             Logger.Log(Level.Info, string.Format("Connecting to java bridge on: [{0}]", javaIpEndPoint.ToString()));
 
-            remoteObserver.OnNext("!!!!!!!!CLR TO JAVA CAN YOU HEAR ME!!!!!!!");
+            // Negotiate the protocol.
+            Serializer.Initialize();
+            int index = Serializer.classMap["org.apache.reef.bridge.message.SystemOnStart"];
+            List<string> list = new List<string>();
+            list.Add("#######one");
+            list.Add("#######two");
+            list.Add("#######three");
+            Logger.Log(Level.Info, string.Format("!!!!!!!Class map SystemOnStart index: [{0}]", index));
+            remoteObserver.OnNext(Serializer.Write(new Protocol(index, list)));
         }
     }
 }
