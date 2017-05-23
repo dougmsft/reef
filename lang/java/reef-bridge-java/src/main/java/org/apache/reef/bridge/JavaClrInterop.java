@@ -63,6 +63,7 @@ public final class JavaClrInterop implements EventHandler<RemoteMessage<byte[]>>
 
   public JavaClrInterop(final LocalAddressProvider localAddressProvider) {
     LOG.log(Level.INFO, "Java bridge interop initializing");
+    Serializer.Initialize();
 
     try {
       String name = "JavaClrInterop";
