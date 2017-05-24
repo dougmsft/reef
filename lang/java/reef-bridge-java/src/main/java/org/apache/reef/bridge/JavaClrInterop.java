@@ -45,7 +45,6 @@ import java.lang.CharSequence;
 import java.lang.Integer;
 import java.net.InetSocketAddress;
 import java.util.List;
-import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -61,6 +60,10 @@ public final class JavaClrInterop implements EventHandler<RemoteMessage<byte[]>>
   private InetSocketAddress inetSocketAddress;
   private EventHandler<byte[]> sender;
 
+  /**
+   *
+   * @param localAddressProvider
+   */
   public JavaClrInterop(final LocalAddressProvider localAddressProvider) {
     LOG.log(Level.INFO, "Java bridge interop initializing");
     Serializer.Initialize();
@@ -97,7 +100,10 @@ public final class JavaClrInterop implements EventHandler<RemoteMessage<byte[]>>
     }
   }
 
-
+  /**
+   *
+   * @param message
+   */
   public void onNext(final RemoteMessage<byte[]> message) {
 
     List<CharSequence> classList = null;
@@ -152,7 +158,7 @@ public final class JavaClrInterop implements EventHandler<RemoteMessage<byte[]>>
       DatumWriter<Header> headerWriter = new SpecificDatumWriter<>(Header.class);
       DatumWriter<SystemOnStart> sysOnStartWriter = new SpecificDatumWriter<>(SystemOnStart.class);
 
-      headerWriter.write(new Header(msgId), encoder);
+      headerWriter.write(new Header(msgId, "SystemOnStart"), encoder);
       sysOnStartWriter.write(new SystemOnStart(), encoder);
       encoder.flush();
 

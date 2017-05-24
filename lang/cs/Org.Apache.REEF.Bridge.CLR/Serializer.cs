@@ -41,6 +41,9 @@ namespace Org.Apache.REEF.Bridge
         private static SortedDictionary<int, Serialize> serializeMap = new SortedDictionary<int, Serialize>();
         private static SortedDictionary<int, Deserialize> deserializeMap = new SortedDictionary<int, Deserialize>();
 
+        private static SortedDictionary<string, Serialize> serializeByNameMap = new SortedDictionary<string, Serialize>();
+        private static SortedDictionary<string, Deserialize> deserializeByNameMap = new SortedDictionary<string, Deserialize>();
+
         public static Dictionary<string, int> classMap = new Dictionary<string, int>();
 
         /// <summary>
@@ -82,7 +85,7 @@ namespace Org.Apache.REEF.Bridge
         /// <param name="identifier">An integer whose value in the header message desigates the message type being registered.</param>
         internal static void Register<TMessage>(int identifier)
         {
-            Logr.Log(Level.Info, string.Format("Registering message type: {0}", typeof(TMessage).FullName));
+            Logr.Log(Level.Info, string.Format("Registering message type: {0} {1}", typeof(TMessage).FullName), typeof(TMessage).Name);
 
             guidToIntMap.Add(typeof(TMessage).GUID, identifier);
             Serialize serialize = (MemoryStream stream, object message) =>
@@ -91,6 +94,7 @@ namespace Org.Apache.REEF.Bridge
                 messageWriter.Serialize(stream, (TMessage)message);
             };
             serializeMap.Add(identifier, serialize);
+            serializeByNameMap.Add(typeof(TMessage).Name, serialize);
 
             Deserialize deserialize = (MemoryStream stream, object observer) =>
             {
@@ -107,6 +111,7 @@ namespace Org.Apache.REEF.Bridge
                 }
             };
             deserializeMap.Add(identifier, deserialize);
+            deserializeByNameMap.Add(typeof(TMessage).Name, deserialize);
         }
 
         /// <summary>
@@ -122,11 +127,11 @@ namespace Org.Apache.REEF.Bridge
                 using (MemoryStream stream = new MemoryStream())
                 {
                     int identifier = guidToIntMap[message.GetType().GUID];
-                    Header header = new Header(identifier);
+                    Header header = new Header(identifier, message.GetType().Name);
                     headWriter.Serialize(stream, header);
 
                     Serialize serialize;
-                    if (serializeMap.TryGetValue(identifier, out serialize))
+                    if (serializeByNameMap.TryGetValue(message.GetType().Name, out serialize))
                     {
                         serialize(stream, message);
                     }
@@ -158,7 +163,7 @@ namespace Org.Apache.REEF.Bridge
                 {
                     Header head = headReader.Deserialize(stream);
                     Deserialize deserialize;
-                    if (deserializeMap.TryGetValue(head.identifier, out deserialize))
+                    if (deserializeByNameMap.TryGetValue(head.className, out deserialize))
                     {
                         deserialize(stream, observer);
                     }

@@ -29,7 +29,12 @@
       {
         "name":"identifier",
         "doc":"Identifier of the next message to be read.",
-        "type": "int"
+        "type":"int"
+      },
+      {
+        "name":"className",
+        "doc":"The name of the message class with org.apache.reef.bridge.message. removed.",
+        "type":"string"
       }
     ]
   }

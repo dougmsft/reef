@@ -12,7 +12,7 @@ namespace org.apache.reef.bridge.message
     [DataContract(Namespace = "org.apache.reef.bridge.message")]
     public partial class Header
     {
-        private const string JsonSchema = @"{""type"":""record"",""name"":""org.apache.reef.bridge.message.Header"",""doc"":""Identifies the following message in the Java/C# bridge protocol."",""fields"":[{""name"":""identifier"",""doc"":""Identifier of the next message to be read."",""type"":""int""}]}";
+        private const string JsonSchema = @"{""type"":""record"",""name"":""org.apache.reef.bridge.message.Header"",""doc"":""Identifies the following message in the Java/C# bridge protocol."",""fields"":[{""name"":""identifier"",""doc"":""Identifier of the next message to be read."",""type"":""int""},{""name"":""className"",""doc"":""The name of the message class with org.apache.reef.bridge.message. removed."",""type"":""string""}]}";
 
         /// <summary>
         /// Gets the schema.
@@ -30,6 +30,12 @@ namespace org.apache.reef.bridge.message
         /// </summary>
         [DataMember]
         public int identifier { get; set; }
+              
+        /// <summary>
+        /// Gets or sets the className field.
+        /// </summary>
+        [DataMember]
+        public string className { get; set; }
                 
         /// <summary>
         /// Initializes a new instance of the <see cref="Header"/> class.
@@ -42,9 +48,11 @@ namespace org.apache.reef.bridge.message
         /// Initializes a new instance of the <see cref="Header"/> class.
         /// </summary>
         /// <param name="identifier">The identifier.</param>
-        public Header(int identifier)
+        /// <param name="className">The className.</param>
+        public Header(int identifier, string className)
         {
             this.identifier = identifier;
+            this.className = className;
         }
     }
 }
