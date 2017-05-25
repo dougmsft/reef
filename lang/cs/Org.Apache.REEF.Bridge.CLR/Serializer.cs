@@ -85,7 +85,7 @@ namespace Org.Apache.REEF.Bridge
         /// <param name="identifier">An integer whose value in the header message desigates the message type being registered.</param>
         internal static void Register<TMessage>(int identifier)
         {
-            Logr.Log(Level.Info, string.Format("Registering message type: {0} {1}", typeof(TMessage).FullName), typeof(TMessage).Name);
+            Logr.Log(Level.Info, string.Format("Registering message type: {0} {1}", typeof(TMessage).FullName, typeof(TMessage).Name));
 
             guidToIntMap.Add(typeof(TMessage).GUID, identifier);
             Serialize serialize = (MemoryStream stream, object message) =>

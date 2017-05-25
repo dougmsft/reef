@@ -18,11 +18,7 @@
  */
 package org.apache.reef.bridge;
 
-import org.apache.avro.io.*;
-import org.apache.avro.specific.SpecificDatumReader;
-import org.apache.avro.specific.SpecificDatumWriter;
 import org.apache.reef.annotations.audience.Private;
-import org.apache.reef.bridge.message.Header;
 import org.apache.reef.bridge.message.Protocol;
 import org.apache.reef.bridge.message.SystemOnStart;
 import org.apache.reef.tang.Injector;
@@ -38,16 +34,11 @@ import org.apache.reef.wake.remote.ports.TcpPortProvider;
 import org.apache.reef.wake.impl.LoggingEventHandler;
 import org.apache.reef.wake.remote.address.LocalAddressProvider;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
 import java.lang.CharSequence;
-import java.lang.Integer;
 import java.net.InetSocketAddress;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 
 /**
  * Avro implementation of the java interface of CLR/Java bridge.
@@ -58,7 +49,7 @@ public final class JavaClrInterop implements EventHandler<RemoteMessage<byte[]>>
 
   private RemoteManager remoteManager;
   private InetSocketAddress inetSocketAddress;
-  private EventHandler<byte[]> sender;
+  private EventHandler<byte[]> sender = null;
 
   /**
    *
@@ -100,6 +91,10 @@ public final class JavaClrInterop implements EventHandler<RemoteMessage<byte[]>>
     }
   }
 
+  public void onNext(Protocol protocol) {
+    LOG.log(Level.INFO,"!!!!!!!Java bridge received protocol message: " + protocol.toString());
+  }
+
   /**
    *
    * @param message
@@ -108,65 +103,17 @@ public final class JavaClrInterop implements EventHandler<RemoteMessage<byte[]>>
 
     List<CharSequence> classList = null;
     int index = -1;
-    LOG.log(Level.INFO, "!!!!!!!Java bridge received message: " + message.toString());
+    LOG.log(Level.INFO,"!!!!!!!Java bridge received message: " + message.toString());
+    // Deserialize the message and invoke the appropriate processing method.
+    Serializer.read(message.getMessage(),this);
 
-    // Setup an input stream from the bytes.
-    try (InputStream inputStream = new ByteArrayInputStream(message.getMessage())){
-      // Feed the bytes to a binary decoder.
-      final BinaryDecoder decoder = DecoderFactory.get().binaryDecoder(inputStream,null);
-      // Read the header message to find out what follows.
-      final SpecificDatumReader<Header> headerReader = new SpecificDatumReader<>(Header.class);
-      Header header = headerReader.read(null, decoder);
-
-      LOG.log(Level.INFO, "!!!!!!!Message header = " +  header.getIdentifier().toString());
-
-      if (header.getIdentifier() == 100) {
-        // The next message is a Protocol message as expected.
-        final SpecificDatumReader<Protocol> protocolReader = new SpecificDatumReader<>(Protocol.class);
-        Protocol protocol = protocolReader.read(null, decoder);
-        if (protocol == null) {
-          LOG.log(Level.INFO, "!!!!!!!Failed to read Protocol message");
-        } else {
-          index = protocol.getOffset();
-          LOG.log(Level.INFO, "!!!!!!!Protocol message: " + Integer.toString(index));
-        }
-
-        classList = protocol.getNames();
-        LOG.log(Level.INFO, "!!!!!!!Protocol list size: " + Integer.toString(classList.size()));
-
-        for (CharSequence name : classList) {
-          LOG.log(Level.INFO, "CLASS NAME: " + name.toString());
-        }
-
-      } else {
-        LOG.log(Level.INFO, "!!!!!!!Do not receive expected Protocol message");
-      }
-    } catch(Exception e) {
-      LOG.log(Level.INFO, "!!!!!!!Error decoding Protocol message: " + e.getMessage());
+    if (sender == null) {
+      // Instantiate a network connection to the C# side of the bridge.
+      RemoteIdentifier remoteIdentifier = message.getIdentifier();
+      LOG.log(Level.INFO, "!!!!!!!Java bridge connecting to: " + remoteIdentifier.toString());
+      sender = remoteManager.getHandler(remoteIdentifier, byte[].class);
     }
-
-    RemoteIdentifier remoteIdentifier =  message.getIdentifier();
-    LOG.log(Level.INFO, "!!!!!!!Java bridge connecting to: " + remoteIdentifier.toString());
-    sender = remoteManager.getHandler(remoteIdentifier, byte[].class);
-
-    //String className = SystemOnStart.class.getName();
-    Integer msgId = index; //classMap.get(className.subSequence(0,className.length()));
-
-    try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
-      BinaryEncoder encoder = EncoderFactory.get().binaryEncoder(outputStream, null);
-
-      DatumWriter<Header> headerWriter = new SpecificDatumWriter<>(Header.class);
-      DatumWriter<SystemOnStart> sysOnStartWriter = new SpecificDatumWriter<>(SystemOnStart.class);
-
-      headerWriter.write(new Header(msgId, "SystemOnStart"), encoder);
-      sysOnStartWriter.write(new SystemOnStart(), encoder);
-      encoder.flush();
-
-      sender.onNext(outputStream.toByteArray());
-
-    } catch(Exception e) {
-      LOG.log(Level.INFO, "!!!!!!!Error sending SystemOnStart message: " + e.getMessage());
-    }
+    sender.onNext(Serializer.write(new SystemOnStart());
   }
 
   public InetSocketAddress getAddress() {

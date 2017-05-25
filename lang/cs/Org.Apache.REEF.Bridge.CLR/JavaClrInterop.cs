@@ -32,7 +32,7 @@ using Org.Apache.REEF.Wake.Remote.Impl;
 
 namespace Org.Apache.REEF.Bridge
 {
-    public class JavaClrInterop : IObserver<IRemoteMessage<byte[]>>
+    public class JavaClrInterop : IObserver<IRemoteMessage<byte[]>>, IObserver<SystemOnStart>
     {
         private static readonly Logger Logger = Logger.GetLogger(typeof(JavaClrInterop));
 
