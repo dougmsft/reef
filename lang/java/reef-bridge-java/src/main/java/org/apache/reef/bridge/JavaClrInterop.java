@@ -33,9 +33,12 @@ import org.apache.reef.wake.remote.RemoteManagerFactory;
 import org.apache.reef.wake.remote.ports.TcpPortProvider;
 import org.apache.reef.wake.impl.LoggingEventHandler;
 import org.apache.reef.wake.remote.address.LocalAddressProvider;
+import org.apache.reef.wake.rx.Observer;
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.lang.CharSequence;
 import java.net.InetSocketAddress;
+import java.util.Date;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -44,7 +47,10 @@ import java.util.logging.Logger;
  * Avro implementation of the java interface of CLR/Java bridge.
  */
 @Private
-public final class JavaClrInterop implements EventHandler<RemoteMessage<byte[]>> {
+public final class JavaClrInterop
+  implements EventHandler<RemoteMessage<byte[]>>,
+  Observer<Protocol>
+{
   private static final Logger LOG = Logger.getLogger(JavaClrInterop.class.getName());
 
   private RemoteManager remoteManager;
@@ -67,15 +73,15 @@ public final class JavaClrInterop implements EventHandler<RemoteMessage<byte[]>>
       int timeOut = 10000;
 
       final Injector injector = Tang.Factory.getTang().newInjector();
-      TcpPortProvider tcpPortProvider = Tang.Factory.getTang().newInjector().getInstance(TcpPortProvider.class);
+      final TcpPortProvider tcpPortProvider = Tang.Factory.getTang().newInjector().getInstance(TcpPortProvider.class);
 
-      RemoteManagerFactory remoteManagerFactory = injector.getInstance(RemoteManagerFactory.class);
+      final RemoteManagerFactory remoteManagerFactory = injector.getInstance(RemoteManagerFactory.class);
       remoteManager = remoteManagerFactory.getInstance(
         name, localAddressProvider.getLocalAddress(), port, new ByteCodec(),
         new LoggingEventHandler<Throwable>(), order, retries, timeOut,
         localAddressProvider, tcpPortProvider);
 
-      RemoteIdentifier remoteIdentifier = remoteManager.getMyIdentifier();
+      final RemoteIdentifier remoteIdentifier = remoteManager.getMyIdentifier();
       if (remoteIdentifier instanceof SocketRemoteIdentifier) {
         SocketRemoteIdentifier socketIdentifier = (SocketRemoteIdentifier)remoteIdentifier;
         inetSocketAddress = socketIdentifier.getSocketAddress();
@@ -92,7 +98,7 @@ public final class JavaClrInterop implements EventHandler<RemoteMessage<byte[]>>
   }
 
   public void onNext(Protocol protocol) {
-    LOG.log(Level.INFO,"!!!!!!!Java bridge received protocol message: " + protocol.toString());
+    LOG.log(Level.INFO,"!!!!!!!Java bridge received protocol message: " + protocol.getOffset().toString());
   }
 
   /**
@@ -113,7 +119,18 @@ public final class JavaClrInterop implements EventHandler<RemoteMessage<byte[]>>
       LOG.log(Level.INFO, "!!!!!!!Java bridge connecting to: " + remoteIdentifier.toString());
       sender = remoteManager.getHandler(remoteIdentifier, byte[].class);
     }
-    sender.onNext(Serializer.write(new SystemOnStart());
+    Date date = new Date();
+    sender.onNext(Serializer.write(new SystemOnStart(date.getTime())));
+  }
+
+  public void onError(final Exception error)
+  {
+    throw new NotImplementedException();
+  }
+
+  public void onCompleted()
+  {
+    throw new NotImplementedException();
   }
 
   public InetSocketAddress getAddress() {

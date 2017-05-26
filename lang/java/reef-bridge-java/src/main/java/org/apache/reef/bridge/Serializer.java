@@ -24,7 +24,7 @@ import org.apache.avro.specific.SpecificDatumWriter;
 import org.apache.avro.specific.SpecificRecord;
 import org.apache.reef.bridge.message.Header;
 import org.apache.avro.specific.SpecificRecordBase;
-import org.apache.reef.wake.rx.Observer;
+import org.apache.reef.wake.EventHandler;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -62,7 +62,7 @@ abstract class GenericMessageSerializer<TMessage> implements MessageSerializer {
  * Base interface for ananymous message deserializer objects.
  */
 interface MessageDeserializer {
-  void deserialize(BinaryDecoder decoder, Object observer) throws IOException;
+  void deserialize(BinaryDecoder decoder, Object eventHandler) throws Exception;
 }
 
 /**
@@ -72,7 +72,7 @@ interface MessageDeserializer {
 abstract class GenericMessageDeserializer<TMessage> implements  MessageDeserializer {
   Class<TMessage> msgMetaClass;
   public GenericMessageDeserializer(Class<TMessage> msgMetaClass) { this.msgMetaClass = msgMetaClass; }
-  abstract public void deserialize(BinaryDecoder decoder, Object observer) throws IOException;
+  abstract public void deserialize(BinaryDecoder decoder, Object eventHandler) throws Exception;
 }
 
 /**
@@ -148,11 +148,13 @@ final public class Serializer {
     // Instantiate an anonymous instance of the message deserializer for this message type.
     final MessageDeserializer messageDeserializer = new GenericMessageDeserializer<TMessage>(msgMetaClass) {
 
-      public void deserialize(BinaryDecoder decoder, Object observer) throws IOException {
+      public void deserialize(BinaryDecoder decoder, Object eventHandler) throws Exception {
         final SpecificDatumReader<TMessage> messageReader = new SpecificDatumReader<>(msgMetaClass);
         final TMessage message = messageReader.read(null, decoder);
-        if (observer instanceof Observer) {
-          ((Observer<TMessage>)observer).onNext(message);
+        if (eventHandler instanceof EventHandler) {
+          ((EventHandler<TMessage>)eventHandler).onNext(message);
+        } else {
+          throw new Exception("Event handler must be a subclass of EventHandler<" + msgMetaClass.getSimpleName() + ">");
         }
       }
 
@@ -175,15 +177,16 @@ final public class Serializer {
       return(outputStream.toByteArray());
     } catch (Exception e) {
       LOG.log(Level.SEVERE, "Failed to serialize avro message: " + e.getMessage());
+      return(null);
     }
   }
 
   /**
    *
    * @param messageBytes
-   * @param observer
+   * @param eventHandler
    */
-  public static void read(byte[] messageBytes, Object observer) {
+  public static void read(byte[] messageBytes, Object eventHandler) {
     try (InputStream inputStream = new ByteArrayInputStream(messageBytes)) {
       // Binary decoder for both the header and the message.
       final BinaryDecoder decoder = DecoderFactory.get().binaryDecoder(inputStream, null);
@@ -195,7 +198,7 @@ final public class Serializer {
 
       // Get the appropriate deserializer and deserialize the message.
       final MessageDeserializer deserializer = nameToDeserializerMap.get(header.getClassName());
-      deserializer.deserialize(decoder, observer);
+      deserializer.deserialize(decoder, eventHandler);
 
     } catch (Exception e) {
       LOG.log(Level.SEVERE, "Failed to deserialize avro message: " + e.getMessage());

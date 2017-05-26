@@ -65,13 +65,13 @@ namespace Org.Apache.REEF.Bridge
 
         public void OnNext(IRemoteMessage<byte[]> message)
         {
-            Logger.Log(Level.Info, "!!!!!!JavaCLRBridge received message: " + message.Identifier.ToString());
+            Logger.Log(Level.Info, "++++++JavaCLRBridge received message: " + message.Identifier.ToString());
             Serializer.Read(message.Message, this);
         }
 
         public void OnNext(SystemOnStart systemOnStart)
         {
-            Logger.Log(Level.Info, "!!!!!!!!JavaCLRBridge received SystemOnStart message");
+            Logger.Log(Level.Info, "++++++JavaCLRBridge received SystemOnStart message: " + systemOnStart.dateTime);
         }
 
         public void OnError(Exception error)
@@ -108,12 +108,7 @@ namespace Org.Apache.REEF.Bridge
             // Negotiate the protocol.
             Serializer.Initialize();
             int index = Serializer.classMap["org.apache.reef.bridge.message.SystemOnStart"];
-            List<string> list = new List<string>();
-            list.Add("#######one");
-            list.Add("#######two");
-            list.Add("#######three");
-            Logger.Log(Level.Info, string.Format("!!!!!!!Class map SystemOnStart index: [{0}]", index));
-            remoteObserver.OnNext(Serializer.Write(new Protocol(index, list)));
+            remoteObserver.OnNext(Serializer.Write(new Protocol(index)));
         }
     }
 }

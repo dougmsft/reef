@@ -12,7 +12,7 @@ namespace org.apache.reef.bridge.message
     [DataContract(Namespace = "org.apache.reef.bridge.message")]
     public partial class SystemOnStart
     {
-        private const string JsonSchema = @"{""type"":""record"",""name"":""org.apache.reef.bridge.message.SystemOnStart"",""doc"":""The SystemOnStart message is sent to the CLR bridge from the Java bridge when the round trip communication path has been established."",""fields"":[{""name"":""dateTime"",""type"":""int""}]}";
+        private const string JsonSchema = @"{""type"":""record"",""name"":""org.apache.reef.bridge.message.SystemOnStart"",""doc"":""The SystemOnStart message is sent to the CLR bridge from the Java bridge when the round trip communication path has been established."",""fields"":[{""name"":""dateTime"",""doc"":""Date time as a long since January 1, 1970"",""type"":""long""}]}";
 
         /// <summary>
         /// Gets the schema.
@@ -29,7 +29,7 @@ namespace org.apache.reef.bridge.message
         /// Gets or sets the dateTime field.
         /// </summary>
         [DataMember]
-        public int dateTime { get; set; }
+        public long dateTime { get; set; }
                 
         /// <summary>
         /// Initializes a new instance of the <see cref="SystemOnStart"/> class.
@@ -42,7 +42,7 @@ namespace org.apache.reef.bridge.message
         /// Initializes a new instance of the <see cref="SystemOnStart"/> class.
         /// </summary>
         /// <param name="dateTime">The dateTime.</param>
-        public SystemOnStart(int dateTime)
+        public SystemOnStart(long dateTime)
         {
             this.dateTime = dateTime;
         }
