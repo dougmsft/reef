@@ -18,6 +18,7 @@
  */
 package org.apache.reef.javabridge.generic;
 
+import org.apache.reef.bridge.JavaBridge;
 import org.apache.reef.driver.client.JobMessageObserver;
 import org.apache.reef.driver.context.ActiveContext;
 import org.apache.reef.driver.context.ClosedContext;
@@ -29,7 +30,6 @@ import org.apache.reef.driver.task.*;
 import org.apache.reef.io.network.naming.NameServer;
 import org.apache.reef.javabridge.*;
 import org.apache.reef.driver.restart.DriverRestartCompleted;
-import org.apache.reef.bridge.JavaClrInterop;
 import org.apache.reef.runtime.common.driver.DriverStatusManager;
 import org.apache.reef.runtime.common.driver.parameters.DefinedRuntimes;
 import org.apache.reef.runtime.common.files.REEFFileNames;
@@ -128,9 +128,7 @@ public final class JobDriver {
   private final HashMap<String, AllocatedEvaluatorBridge> allocatedEvaluatorBridges =
       new HashMap<>();
   private EvaluatorRequestorBridge evaluatorRequestorBridge;
-
-  private JavaClrInterop javaClrInterop;
-
+  private JavaBridge bridge;
 
   /**
    * Job driver constructor.
@@ -169,7 +167,7 @@ public final class JobDriver {
     this.localAddressProvider = localAddressProvider;
     this.clrProcessFactory = clrProcessFactory;
     this.definedRuntimes = definedRuntimes;
-    this.javaClrInterop = new JavaClrInterop(this.localAddressProvider);
+    this.bridge = new JavaBridge(this.localAddressProvider);
   }
 
   private void setupBridge() {
@@ -198,7 +196,7 @@ public final class JobDriver {
         }
       }
 
-      InetSocketAddress javaBridgeAddress = javaClrInterop.getAddress();
+      InetSocketAddress javaBridgeAddress = bridge.getAddress();
       final String javaBridgePort = Integer.toString(javaBridgeAddress.getPort());
       try {
         final File outputFileName = new File(reefFileNames.getDriverJavaBridgeEndpoint());

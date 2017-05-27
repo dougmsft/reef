@@ -18,10 +18,8 @@
  */
 package org.apache.reef.bridge;
 
+import org.apache.avro.specific.SpecificRecord;
 import org.apache.reef.annotations.audience.Private;
-import org.apache.reef.bridge.message.Protocol;
-import org.apache.reef.bridge.MultiObserverImpl;
-import org.apache.reef.bridge.message.SystemOnStart;
 import org.apache.reef.tang.Injector;
 import org.apache.reef.tang.Tang;
 import org.apache.reef.wake.EventHandler;
@@ -34,103 +32,104 @@ import org.apache.reef.wake.remote.RemoteManagerFactory;
 import org.apache.reef.wake.remote.ports.TcpPortProvider;
 import org.apache.reef.wake.impl.LoggingEventHandler;
 import org.apache.reef.wake.remote.address.LocalAddressProvider;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
-import java.lang.CharSequence;
 import java.net.InetSocketAddress;
-import java.util.Date;
-import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
  * Avro implementation of the java interface of CLR/Java bridge.
  */
-@Private
-public final class JavaClrInterop extends MultiObserverImpl<JavaClrInterop> implements EventHandler<RemoteMessage<byte[]>>
+final public class Network implements EventHandler<RemoteMessage<byte[]>>
 {
-  private static final Logger LOG = Logger.getLogger(JavaClrInterop.class.getName());
+  private static final Logger LOG = Logger.getLogger(Network.class.getName());
 
   private RemoteManager remoteManager;
   private InetSocketAddress inetSocketAddress;
-  private EventHandler<byte[]> sender = null;
+  private EventHandler<byte[]> sender;
+  private MultiObserver observer;
 
   /**
-   *
+   * Set up the java bridge network.
    * @param localAddressProvider
    */
-  public JavaClrInterop(final LocalAddressProvider localAddressProvider) {
-    LOG.log(Level.INFO, "Java bridge interop initializing");
+  public Network(final LocalAddressProvider localAddressProvider, final MultiObserver observer) {
+    LOG.log(Level.INFO, "Initializing");
+
+    this.observer = observer;
     Serializer.Initialize();
 
     try {
-      String name = "JavaClrInterop";
+      String name = "JavaBridgeNetwork";
       int port = 0;
       boolean order = true;
       int retries = 3;
       int timeOut = 10000;
 
+      // Instantiate a port provider.
       final Injector injector = Tang.Factory.getTang().newInjector();
       final TcpPortProvider tcpPortProvider = Tang.Factory.getTang().newInjector().getInstance(TcpPortProvider.class);
 
+      // Instantiate a remote manager to handle java-C# bridge communication.
       final RemoteManagerFactory remoteManagerFactory = injector.getInstance(RemoteManagerFactory.class);
       remoteManager = remoteManagerFactory.getInstance(
         name, localAddressProvider.getLocalAddress(), port, new ByteCodec(),
         new LoggingEventHandler<Throwable>(), order, retries, timeOut,
         localAddressProvider, tcpPortProvider);
 
+      // Get our address and port number.
       final RemoteIdentifier remoteIdentifier = remoteManager.getMyIdentifier();
       if (remoteIdentifier instanceof SocketRemoteIdentifier) {
         SocketRemoteIdentifier socketIdentifier = (SocketRemoteIdentifier)remoteIdentifier;
         inetSocketAddress = socketIdentifier.getSocketAddress();
       } else {
-        throw new RuntimeException("Remote manager identifier is not a SocketRemoteIdentifier");
+        throw new RuntimeException("Identifier is not a SocketRemoteIdentifier");
       }
 
+      // Register as the message handler for any incoming messages.
       remoteManager.registerHandler(byte[].class, this);
 
     } catch (final Exception e) {
       e.printStackTrace();
-      LOG.log(Level.INFO, "Java bridge interop initialization failed: " + e.getMessage());
+      LOG.log(Level.SEVERE, "Initialization failed: " + e.getMessage());
     }
-  }
-
-  public void onNext(Protocol protocol) {
-    LOG.log(Level.INFO,"!!!!!!!Java bridge received protocol message: " + protocol.getOffset().toString());
   }
 
   /**
-   *
-   * @param message
+   * Deserialize and direct incoming messages to the registered MuiltiObserver event handler.
+   * @param message A RemoteMessage<byte[]> object which will be deserialized.
    */
   public void onNext(final RemoteMessage<byte[]> message) {
+    LOG.log(Level.INFO,"Received remote message: " + message.toString());
 
-    List<CharSequence> classList = null;
-    int index = -1;
-    LOG.log(Level.INFO,"!!!!!!!Java bridge received message: " + message.toString());
     // Deserialize the message and invoke the appropriate processing method.
-    Serializer.read(message.getMessage(),this);
+    Serializer.read(message.getMessage(), observer);
 
     if (sender == null) {
       // Instantiate a network connection to the C# side of the bridge.
-      RemoteIdentifier remoteIdentifier = message.getIdentifier();
-      LOG.log(Level.INFO, "!!!!!!!Java bridge connecting to: " + remoteIdentifier.toString());
+      final RemoteIdentifier remoteIdentifier = message.getIdentifier();
+      LOG.log(Level.INFO, "Connecting to: " + remoteIdentifier.toString());
       sender = remoteManager.getHandler(remoteIdentifier, byte[].class);
     }
-    Date date = new Date();
-    sender.onNext(Serializer.write(new SystemOnStart(date.getTime())));
   }
 
-  public void onError(final Exception error)
-  {
-    throw new NotImplementedException();
+  /**
+   * Sends a message to the C# side of the bridge.
+   * @param message An avro message class derived from SpecificRecord.
+   */
+  public void send(SpecificRecord message) {
+    if (sender != null) {
+      sender.onNext(Serializer.write(message));
+    } else {
+      LOG.log(Level.SEVERE,"Attempt to send message ["
+        + message.getClass().getName() + "] before network is initialized");
+    }
   }
 
-  public void onCompleted()
-  {
-    throw new NotImplementedException();
-  }
-
+  /**
+   * Provides the ip address and port of the java bridge network.
+   * @return A InetSockerAddress that contains the ip and port of the bridge network.
+   */
   public InetSocketAddress getAddress() {
     return inetSocketAddress;
   }
