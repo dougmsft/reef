@@ -40,43 +40,8 @@ import io.github.lukehutch.fastclasspathscanner.FastClasspathScanner;
 import io.github.lukehutch.fastclasspathscanner.scanner.ScanResult;
 
 /**
- * Base interface for anonymous message serializer objects.
- */
-interface MessageSerializer {
-  void serialize(ByteArrayOutputStream outputStream, SpecificRecord message) throws IOException;
-}
-
-/**
- * Abstract implementation of message serializer that carries the message type.
- * @param <TMessage> The type of message the instantiation can serialize.
- */
-abstract class GenericMessageSerializer<TMessage> implements MessageSerializer {
-  Class<TMessage> msgMetaClass;
-  public GenericMessageSerializer(Class<TMessage> msgMetaClass) {
-    this.msgMetaClass = msgMetaClass;
-  }
-  abstract public void serialize(ByteArrayOutputStream outputStream, SpecificRecord message) throws IOException;
-}
-
-/**
- * Base interface for ananymous message deserializer objects.
- */
-interface MessageDeserializer {
-  void deserialize(BinaryDecoder decoder, Object eventHandler) throws Exception;
-}
-
-/**
- * Abstract implementation of message deserializer that carries the message type.
- * @param <TMessage> The type of message the instantiation can deserialize.
- */
-abstract class GenericMessageDeserializer<TMessage> implements  MessageDeserializer {
-  Class<TMessage> msgMetaClass;
-  public GenericMessageDeserializer(Class<TMessage> msgMetaClass) { this.msgMetaClass = msgMetaClass; }
-  abstract public void deserialize(BinaryDecoder decoder, Object eventHandler) throws Exception;
-}
-
-/**
- *
+ * The Serializer is a class utility for serializing and deserialing bridge
+ * specific Java to C# messages on the Java side.
  */
 final public class Serializer {
   private static final Logger LOG = Logger.getLogger(Serializer.class.getName());
@@ -121,7 +86,7 @@ final public class Serializer {
    * @param msgMetaClass The reflection class for the message.
    * @param <TMessage> The message Java type.
    */
-  public static <TMessage> void Register(Class<TMessage> msgMetaClass)
+  public static <TMessage> void Register(final Class<TMessage> msgMetaClass)
   {
     LOG.log(Level.INFO,"Registering [" + msgMetaClass.getSimpleName() + "]");
 
@@ -163,10 +128,10 @@ final public class Serializer {
   }
 
   /**
-   *
-   * @param message
+   * Marshall the input message to a byte array.
+   * @param message The message to be marshaled into a byte array.
    */
-  public static byte[] write(SpecificRecord message) {
+  public static byte[] write(final SpecificRecord message) {
     try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
       final String name = message.getClass().getSimpleName();
       LOG.log(Level.INFO, "Serialing message: [" + name + "]");
@@ -182,11 +147,12 @@ final public class Serializer {
   }
 
   /**
-   *
-   * @param messageBytes
-   * @param eventHandler
+   * Read a header and associated message from the input byte stream and
+   * send it to the input event handler.
+   * @param messageBytes An array of bytes that contains the message to be deserialized.
+   * @param eventHandler An implementation of the MultiObserver interface.
    */
-  public static void read(byte[] messageBytes, Object eventHandler) {
+  public static void read(final byte[] messageBytes, final Object eventHandler) {
     try (InputStream inputStream = new ByteArrayInputStream(messageBytes)) {
       // Binary decoder for both the header and the message.
       final BinaryDecoder decoder = DecoderFactory.get().binaryDecoder(inputStream, null);

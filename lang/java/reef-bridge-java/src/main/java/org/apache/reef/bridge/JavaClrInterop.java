@@ -20,6 +20,7 @@ package org.apache.reef.bridge;
 
 import org.apache.reef.annotations.audience.Private;
 import org.apache.reef.bridge.message.Protocol;
+import org.apache.reef.bridge.MultiObserverImpl;
 import org.apache.reef.bridge.message.SystemOnStart;
 import org.apache.reef.tang.Injector;
 import org.apache.reef.tang.Tang;
@@ -33,7 +34,6 @@ import org.apache.reef.wake.remote.RemoteManagerFactory;
 import org.apache.reef.wake.remote.ports.TcpPortProvider;
 import org.apache.reef.wake.impl.LoggingEventHandler;
 import org.apache.reef.wake.remote.address.LocalAddressProvider;
-import org.apache.reef.wake.rx.Observer;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.lang.CharSequence;
@@ -47,9 +47,7 @@ import java.util.logging.Logger;
  * Avro implementation of the java interface of CLR/Java bridge.
  */
 @Private
-public final class JavaClrInterop
-  implements EventHandler<RemoteMessage<byte[]>>,
-  Observer<Protocol>
+public final class JavaClrInterop extends MultiObserverImpl<JavaClrInterop> implements EventHandler<RemoteMessage<byte[]>>
 {
   private static final Logger LOG = Logger.getLogger(JavaClrInterop.class.getName());
 
