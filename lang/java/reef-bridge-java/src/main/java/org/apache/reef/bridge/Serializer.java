@@ -166,8 +166,12 @@ final public class Serializer {
 
       // Get the appropriate deserializer and deserialize the message.
       final MessageDeserializer deserializer = nameToDeserializerMap.get(header.getClassName());
-      LOG.log(Level.INFO, "Calling message deserializer");
-      deserializer.deserialize(decoder, observer);
+      if (deserializer != null) {
+        LOG.log(Level.INFO, "Calling message deserializer");
+        deserializer.deserialize(decoder, observer);
+      } else {
+        LOG.log(Level.SEVERE, "Filed to find message deserializer");
+      }
 
     } catch (Exception e) {
       LOG.log(Level.SEVERE, "Failed to deserialize avro message: " + e.getMessage());
