@@ -42,7 +42,7 @@ public final class JavaBridge extends MultiObserverImpl<JavaBridge> {
   public void onNext(Protocol protocol) {
     LOG.log(Level.INFO,"+++++++Received protocol message: " + protocol.getOffset().toString());
     Date date = new Date();
-    network.send(new SystemOnStart(date.getTime());
+    network.send(new SystemOnStart(date.getTime()));
   }
 
   public void onError(final Exception error) {

@@ -17,7 +17,6 @@
 
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using org.apache.reef.bridge.message;
@@ -107,8 +106,7 @@ namespace Org.Apache.REEF.Bridge
 
             // Negotiate the protocol.
             Serializer.Initialize();
-            int index = Serializer.classMap["org.apache.reef.bridge.message.SystemOnStart"];
-            remoteObserver.OnNext(Serializer.Write(new Protocol(index)));
+            remoteObserver.OnNext(Serializer.Write(new Protocol(100)));
         }
     }
 }

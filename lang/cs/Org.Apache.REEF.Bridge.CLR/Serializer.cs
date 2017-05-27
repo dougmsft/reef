@@ -121,6 +121,7 @@ namespace Org.Apache.REEF.Bridge
         /// <returns>A byte array containing the serialized associated header and message.</returns>
         public static byte[] Write(object message) 
         {
+            Logr.Log(Level.Info, "Serializing message: " + message.GetType().Name);
             try
             { 
                 IAvroSerializer<Header> headWriter = AvroSerializer.Create<Header>();
@@ -137,6 +138,7 @@ namespace Org.Apache.REEF.Bridge
                     }
                     else
                     {
+                        Logr.Log(Level.Info, "Request to seriaiize message of unknown type: " + message.GetType().Name);
                         throw new Exception("Request to serialize unknown message type.");
                     }
                     return stream.GetBuffer();

@@ -112,14 +112,17 @@ final public class Serializer {
 
     // Instantiate an anonymous instance of the message deserializer for this message type.
     final MessageDeserializer messageDeserializer = new GenericMessageDeserializer<TMessage>(msgMetaClass) {
+      private final Logger LOG = Logger.getLogger(GenericMessageDeserializer.class.getName());
 
-      public void deserialize(BinaryDecoder decoder, Object eventHandler) throws Exception {
+      public void deserialize(BinaryDecoder decoder, MultiObserver observer) throws Exception {
+        LOG.log(Level.INFO, "Entering message deserializer for: " + msgMetaClass.getSimpleName());
         final SpecificDatumReader<TMessage> messageReader = new SpecificDatumReader<>(msgMetaClass);
         final TMessage message = messageReader.read(null, decoder);
-        if (eventHandler instanceof EventHandler) {
-          ((EventHandler<TMessage>)eventHandler).onNext(message);
+        if (message != null) {
+          observer.onNext(message);
         } else {
-          throw new Exception("Event handler must be a subclass of EventHandler<" + msgMetaClass.getSimpleName() + ">");
+          LOG.log(Level.SEVERE, "Message pointer is null");
+          throw new Exception("Failed to deserialize message [" + msgMetaClass.getSimpleName() + "]");
         }
       }
 
@@ -134,7 +137,7 @@ final public class Serializer {
   public static byte[] write(final SpecificRecord message) {
     try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
       final String name = message.getClass().getSimpleName();
-      LOG.log(Level.INFO, "Serialing message: [" + name + "]");
+      LOG.log(Level.INFO, "Serializing message: [" + name + "]");
 
       final MessageSerializer serializer = nameToSerializerMap.get(name);
       serializer.serialize(outputStream, message);
@@ -147,12 +150,11 @@ final public class Serializer {
   }
 
   /**
-   * Read a header and associated message from the input byte stream and
-   * send it to the input event handler.
+   * Read a message from the input byte stream and send it to the event handler.
    * @param messageBytes An array of bytes that contains the message to be deserialized.
-   * @param eventHandler An implementation of the MultiObserver interface.
+   * @param observer An implementation of the MultiObserver interface.
    */
-  public static void read(final byte[] messageBytes, final Object eventHandler) {
+  public static void read(final byte[] messageBytes, final MultiObserver observer) {
     try (InputStream inputStream = new ByteArrayInputStream(messageBytes)) {
       // Binary decoder for both the header and the message.
       final BinaryDecoder decoder = DecoderFactory.get().binaryDecoder(inputStream, null);
@@ -164,7 +166,8 @@ final public class Serializer {
 
       // Get the appropriate deserializer and deserialize the message.
       final MessageDeserializer deserializer = nameToDeserializerMap.get(header.getClassName());
-      deserializer.deserialize(decoder, eventHandler);
+      LOG.log(Level.INFO, "Calling message deserializer");
+      deserializer.deserialize(decoder, observer);
 
     } catch (Exception e) {
       LOG.log(Level.SEVERE, "Failed to deserialize avro message: " + e.getMessage());

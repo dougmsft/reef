@@ -46,7 +46,7 @@ abstract class GenericMessageSerializer<TMessage> implements MessageSerializer {
  * Base interface for ananymous message deserializer objects.
  */
 interface MessageDeserializer {
-  void deserialize(BinaryDecoder decoder, Object eventHandler) throws Exception;
+  void deserialize(BinaryDecoder decoder, MultiObserver observer) throws Exception;
 }
 
 /**
@@ -55,9 +55,8 @@ interface MessageDeserializer {
  */
 abstract class GenericMessageDeserializer<TMessage> implements  MessageDeserializer {
   Class<TMessage> msgMetaClass;
-  public GenericMessageDeserializer(final Class<TMessage> msgMetaClass)
-  {
+  public GenericMessageDeserializer(final Class<TMessage> msgMetaClass) {
     this.msgMetaClass = msgMetaClass;
   }
-  abstract public void deserialize(BinaryDecoder decoder, Object eventHandler) throws Exception;
+  abstract public void deserialize(BinaryDecoder decoder, MultiObserver observer) throws Exception;
 }
