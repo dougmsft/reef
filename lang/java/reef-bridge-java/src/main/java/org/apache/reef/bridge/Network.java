@@ -102,15 +102,18 @@ final public class Network implements EventHandler<RemoteMessage<byte[]>>
   public void onNext(final RemoteMessage<byte[]> message) {
     LOG.log(Level.INFO,"Received remote message: " + message.toString());
 
-    // Deserialize the message and invoke the appropriate processing method.
-    Serializer.read(message.getMessage(), observer);
-
     if (sender == null) {
       // Instantiate a network connection to the C# side of the bridge.
+      // THERE COULD BE  A SECURITY ISSUE HERE WHERE SOMEONE SPOOFS THE
+      // C# BRIDGE, WE RECEIVE IT FIRST, AND CONNECT TO THE SPOOFER,
+      // THOUGH THE TIME WINDOW IS VERY SMALL.
       final RemoteIdentifier remoteIdentifier = message.getIdentifier();
       LOG.log(Level.INFO, "Connecting to: " + remoteIdentifier.toString());
       sender = remoteManager.getHandler(remoteIdentifier, byte[].class);
     }
+
+    // Deserialize the message and invoke the appropriate processing method.
+    Serializer.read(message.getMessage(), observer);
   }
 
   /**

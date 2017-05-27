@@ -24,7 +24,6 @@ import org.apache.avro.specific.SpecificDatumWriter;
 import org.apache.avro.specific.SpecificRecord;
 import org.apache.reef.bridge.message.Header;
 import org.apache.avro.specific.SpecificRecordBase;
-import org.apache.reef.wake.EventHandler;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -34,6 +33,7 @@ import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import io.github.lukehutch.fastclasspathscanner.FastClasspathScanner;
@@ -77,6 +77,7 @@ final public class Serializer {
     } catch (Exception e) {
       LOG.log(Level.SEVERE,"Failed to register message class " + e.getMessage() );
     }
+    printMessageMaps();
 
     LOG.log(Level.INFO,"End: Serializer.Initialize");
   }
@@ -130,6 +131,14 @@ final public class Serializer {
     nameToDeserializerMap.put(msgMetaClass.getSimpleName(), messageDeserializer);
   }
 
+  private static void printMessageMaps() {
+    Set<Map.Entry<String, MessageDeserializer>> deserializers = nameToDeserializerMap.entrySet();
+    for (Map.Entry<String, MessageDeserializer> entry : deserializers) {
+      LOG.log(Level.INFO, "Deserializer entry: " + entry.getKey() + " : "
+        + ((entry.getValue() != null) ? entry.getValue().getClass().toString() : "NULL"));
+    }
+  }
+
   /**
    * Marshall the input message to a byte array.
    * @param message The message to be marshaled into a byte array.
@@ -165,7 +174,7 @@ final public class Serializer {
       LOG.log(Level.INFO, "Deserializing message: [" + header.getClassName() + "]");
 
       // Get the appropriate deserializer and deserialize the message.
-      final MessageDeserializer deserializer = nameToDeserializerMap.get(header.getClassName());
+      final MessageDeserializer deserializer = nameToDeserializerMap.get(header.getClassName().toString());
       if (deserializer != null) {
         LOG.log(Level.INFO, "Calling message deserializer");
         deserializer.deserialize(decoder, observer);
