@@ -39,7 +39,7 @@ namespace Org.Apache.REEF.Driver.Bridge
         private static readonly Logger LOGGER = Logger.GetLogger(typeof(ClrSystemHandlerWrapper));
 
         private static DriverBridge _driverBridge;
-        private static JavaClrInterop _javaClrInterop;
+        private static ClrBridge _clrBridge;
 
         public static void Call_ClrSystemAllocatedEvaluatorHandler_OnNext(ulong handle, IAllocatedEvaluatorClr2Java clr2Java)
         {
@@ -298,13 +298,12 @@ namespace Org.Apache.REEF.Driver.Bridge
 
             try
             {
-                _javaClrInterop = TangFactory.GetTang().NewInjector().GetInstance<JavaClrInterop>();
-
                 var port = injector.GetInstance<HttpServerPort>();
                 port.PortNumber = httpServerPortNumber == null
                     ? 0
                     : int.Parse(httpServerPortNumber, CultureInfo.InvariantCulture);
 
+                _clrBridge = TangFactory.GetTang().NewInjector().GetInstance<ClrBridge>();
                 _driverBridge = injector.GetInstance<DriverBridge>();
             }
             catch (Exception e)

@@ -131,6 +131,9 @@ final public class Serializer {
     nameToDeserializerMap.put(msgMetaClass.getSimpleName(), messageDeserializer);
   }
 
+  /**
+   * Print the current deserializer message map for debug purposes.
+   */
   private static void printMessageMaps() {
     Set<Map.Entry<String, MessageDeserializer>> deserializers = nameToDeserializerMap.entrySet();
     for (Map.Entry<String, MessageDeserializer> entry : deserializers) {

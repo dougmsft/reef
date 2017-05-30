@@ -59,7 +59,7 @@ public abstract class MultiObserverImpl<TSubCls> implements MultiObserver {
 
   /**
    * Called when an event is received that does not have an onNext method definition
-   * in TSubCls. Override in TSubClas to handle the call.
+   * in TSubCls. Override in TSubClas to handle the error.
    * @param event A reference to an object which is an event not handled by TSubCls.
    */
   public void unimplemented(final Object event) {

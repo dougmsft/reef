@@ -34,20 +34,20 @@ namespace Org.Apache.REEF.Bridge
     {
         private static readonly Logger Logr = Logger.GetLogger(typeof(Serializer));
 
+        // Delagates for message serializers and deserializers.
         private delegate void Serialize(MemoryStream stream, object message);
         private delegate void Deserialize(MemoryStream stream, object observer);
 
+        // Message type to serialize/derserialize delagate.
         private static SortedDictionary<Guid, int> guidToIntMap = new SortedDictionary<Guid, int>();
-        private static SortedDictionary<int, Serialize> serializeMap = new SortedDictionary<int, Serialize>();
-        private static SortedDictionary<int, Deserialize> deserializeMap = new SortedDictionary<int, Deserialize>();
+        private static SortedDictionary<string, Serialize> serializeMap = new SortedDictionary<string, Serialize>();
+        private static SortedDictionary<string, Deserialize> deserializeMap = new SortedDictionary<string, Deserialize>();
 
-        private static SortedDictionary<string, Serialize> serializeByNameMap = new SortedDictionary<string, Serialize>();
-        private static SortedDictionary<string, Deserialize> deserializeByNameMap = new SortedDictionary<string, Deserialize>();
-
+        // Protocol definition.
         public static Dictionary<string, int> classMap = new Dictionary<string, int>();
 
         /// <summary>
-        /// Use reflection to find and register all messages.
+        /// Register all of the messages in org.apache.reef.bridge.message using reflection.
         /// </summary>
         public static void Initialize()
         {
@@ -79,7 +79,7 @@ namespace Org.Apache.REEF.Bridge
         }
 
         /// <summary>
-        /// Generates and stores the metadata necessary to serialze and deserialize a specific message type.
+        /// Generate and store the metadata necessary to serialze and deserialize a specific message type.
         /// </summary>
         /// <typeparam name="TMessage">The class type of the message being registered.</typeparam>
         /// <param name="identifier">An integer whose value in the header message desigates the message type being registered.</param>
@@ -93,8 +93,7 @@ namespace Org.Apache.REEF.Bridge
                 IAvroSerializer<TMessage> messageWriter = AvroSerializer.Create<TMessage>();
                 messageWriter.Serialize(stream, (TMessage)message);
             };
-            serializeMap.Add(identifier, serialize);
-            serializeByNameMap.Add(typeof(TMessage).Name, serialize);
+            serializeMap.Add(typeof(TMessage).Name, serialize);
 
             Deserialize deserialize = (MemoryStream stream, object observer) =>
             {
@@ -110,15 +109,14 @@ namespace Org.Apache.REEF.Bridge
                     Logr.Log(Level.Info, string.Format("Unhandled message received: " + message.ToString()));
                 }
             };
-            deserializeMap.Add(identifier, deserialize);
-            deserializeByNameMap.Add(typeof(TMessage).Name, deserialize);
+            deserializeMap.Add(typeof(TMessage).Name, deserialize);
         }
 
         /// <summary>
         /// Serialize the input message and return a byte array.
         /// </summary>
         /// <param name="message">A object reference to a messeage to be serialized</param>
-        /// <returns>A byte array containing the serialized associated header and message.</returns>
+        /// <returns>A byte array containing the serialized header and message.</returns>
         public static byte[] Write(object message) 
         {
             Logr.Log(Level.Info, "Serializing message: " + message.GetType().Name);
@@ -132,7 +130,7 @@ namespace Org.Apache.REEF.Bridge
                     headWriter.Serialize(stream, header);
 
                     Serialize serialize;
-                    if (serializeByNameMap.TryGetValue(message.GetType().Name, out serialize))
+                    if (serializeMap.TryGetValue(message.GetType().Name, out serialize))
                     {
                         serialize(stream, message);
                     }
@@ -154,7 +152,7 @@ namespace Org.Apache.REEF.Bridge
         /// <summary>
         /// Read a message from the input byte array.
         /// </summary>
-        /// <param name="data">The byte array containing header message and message to be deserialized.</param>
+        /// <param name="data">The byte array containing a header message and message to be deserialized.</param>
         /// <param name="observer">An object which implements the IObserver<> interface for the message being deserialized.</param>
         public static void Read(byte[] data, object observer)
         {
@@ -165,7 +163,7 @@ namespace Org.Apache.REEF.Bridge
                 {
                     Header head = headReader.Deserialize(stream);
                     Deserialize deserialize;
-                    if (deserializeByNameMap.TryGetValue(head.className, out deserialize))
+                    if (deserializeMap.TryGetValue(head.className, out deserialize))
                     {
                         deserialize(stream, observer);
                     }
