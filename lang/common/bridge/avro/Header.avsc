@@ -21,15 +21,20 @@
    * Identify the next message in the Java/C# bridge protocol.
    */
   {
-    "namespace": "org.apache.reef.bridge.message",
-    "type": "record",
-    "name": "Header",
-    "doc": "Identifies the following message in the Java/C# bridge protocol.",
-    "fields": [
+    "namespace":"org.apache.reef.bridge.message",
+    "type":"record",
+    "name":"Header",
+    "doc":"Identifies the following message in the Java/C# bridge protocol.",
+    "fields":[
       {
         "name":"identifier",
         "doc":"Identifier of the next message to be read.",
-        "type": "int"
+        "type":"int"
+      },
+      {
+        "name":"className",
+        "doc":"The name of the message class with org.apache.reef.bridge.message. removed.",
+        "type":"string"
       }
     ]
   }

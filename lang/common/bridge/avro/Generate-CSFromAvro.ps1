@@ -1,6 +1,6 @@
 
 #
-# Temporarily hand generate the C# source files for the Java to CLR bridge 
+# Temporarily hand generate the C# source files for the Java to CLR bridge
 # Avro messages until this is fully supported on the C# side.
 #
 
@@ -28,5 +28,3 @@ foreach ($SourceFile in $AvroSources)
     Write-Host "Processing $SourceFile" -ForegroundColor Green
     & "Microsoft.Avro.Tools.exe" CodeGen /I:$ReefRoot\lang\common\bridge\avro\$SourceFile /O:$ReefRoot\lang\cs\Org.Apache.REEF.Bridge.CLR\Message\
 }
-
-

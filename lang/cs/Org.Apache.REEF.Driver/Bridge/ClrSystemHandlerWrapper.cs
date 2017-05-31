@@ -28,7 +28,6 @@ using Org.Apache.REEF.Tang.Implementations.Tang;
 using Org.Apache.REEF.Utilities.Attributes;
 using Org.Apache.REEF.Utilities.Diagnostics;
 using Org.Apache.REEF.Utilities.Logging;
-using Org.Apache.REEF.Bridge;
 using ContextMessage = Org.Apache.REEF.Driver.Bridge.Events.ContextMessage;
 
 namespace Org.Apache.REEF.Driver.Bridge
@@ -39,7 +38,7 @@ namespace Org.Apache.REEF.Driver.Bridge
         private static readonly Logger LOGGER = Logger.GetLogger(typeof(ClrSystemHandlerWrapper));
 
         private static DriverBridge _driverBridge;
-        private static JavaClrInterop _javaClrInterop;
+        private static ClrBridge _clrBridge;
 
         public static void Call_ClrSystemAllocatedEvaluatorHandler_OnNext(ulong handle, IAllocatedEvaluatorClr2Java clr2Java)
         {
@@ -249,19 +248,6 @@ namespace Org.Apache.REEF.Driver.Bridge
         }
 
         /// <summary>
-        /// Invokes event handlers registered to the driver start event.
-        /// </summary>
-        /// <param name="startTime"><see cref="DateTime"/> object that represents when this method was called.</param>
-        public static void Call_ClrSystemStartHandler_OnStart(DateTime startTime)
-        {
-            using (LOGGER.LogFunction("ClrSystemHandlerWrapper::Call_ClrSystemStartHandler_OnStart"))
-            {
-                LOGGER.Log(Level.Info, "*** Start time is " + startTime);
-                _driverBridge.StartHandlersOnNext(startTime);
-            }
-        }
-
-        /// <summary>
         /// Invokes event handlers registered to the driver restart event.
         /// </summary>
         /// <param name="driverRestartedClr2Java">Proxy object to the Java driver restart event object.</param>
@@ -298,14 +284,14 @@ namespace Org.Apache.REEF.Driver.Bridge
 
             try
             {
-                _javaClrInterop = TangFactory.GetTang().NewInjector().GetInstance<JavaClrInterop>();
-
                 var port = injector.GetInstance<HttpServerPort>();
                 port.PortNumber = httpServerPortNumber == null
                     ? 0
                     : int.Parse(httpServerPortNumber, CultureInfo.InvariantCulture);
 
+                _clrBridge = TangFactory.GetTang().NewInjector().GetInstance<ClrBridge>();
                 _driverBridge = injector.GetInstance<DriverBridge>();
+                _clrBridge.driverBridge = _driverBridge;
             }
             catch (Exception e)
             {

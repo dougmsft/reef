@@ -10,10 +10,9 @@ namespace org.apache.reef.bridge.message
     /// Used to serialize and deserialize Avro record org.apache.reef.bridge.message.Protocol.
     /// </summary>
     [DataContract(Namespace = "org.apache.reef.bridge.message")]
-    [KnownType(typeof(List<string>))]
     public partial class Protocol
     {
-        private const string JsonSchema = @"{""type"":""record"",""name"":""org.apache.reef.bridge.message.Protocol"",""doc"":""Negotiate Java/C# bridge protocol messages."",""fields"":[{""name"":""offset"",""doc"":""The index offset of the message identifiers."",""type"":""int""},{""name"":""names"",""doc"":""An array of message class names."",""type"":{""type"":""array"",""items"":""string""}}]}";
+        private const string JsonSchema = @"{""type"":""record"",""name"":""org.apache.reef.bridge.message.Protocol"",""doc"":""Negotiate Java/C# bridge protocol messages."",""fields"":[{""name"":""offset"",""doc"":""The index offset of the message identifiers."",""type"":""int""}]}";
 
         /// <summary>
         /// Gets the schema.
@@ -31,12 +30,6 @@ namespace org.apache.reef.bridge.message
         /// </summary>
         [DataMember]
         public int offset { get; set; }
-              
-        /// <summary>
-        /// Gets or sets the names field.
-        /// </summary>
-        [DataMember]
-        public IList<string> names { get; set; }
                 
         /// <summary>
         /// Initializes a new instance of the <see cref="Protocol"/> class.
@@ -49,11 +42,9 @@ namespace org.apache.reef.bridge.message
         /// Initializes a new instance of the <see cref="Protocol"/> class.
         /// </summary>
         /// <param name="offset">The offset.</param>
-        /// <param name="names">The names.</param>
-        public Protocol(int offset, IList<string> names)
+        public Protocol(int offset)
         {
             this.offset = offset;
-            this.names = names;
         }
     }
 }

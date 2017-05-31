@@ -46,7 +46,7 @@ under the License.
     <Compile Include="$(SolutionDir)\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
-    <Compile Include="JavaClrInterop.cs" />
+    <Compile Include="Network.cs" />
     <Compile Include="Message\Header.cs" />
     <Compile Include="Message\Protocol.cs" />
     <Compile Include="Message\SystemOnStart.cs" />
@@ -54,6 +54,7 @@ under the License.
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
+    <None Include="Message\README.md" />
     <None Include="Org.Apache.REEF.Bridge.CLR.nuspec" />
     <None Include="packages.config" />
   </ItemGroup>
@@ -79,9 +80,7 @@ under the License.
       <Name>Org.Apache.REEF.IO</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="MessageSource\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   <Import Project="$(PackagesDir)\StyleCop.MSBuild.$(StyleCopVersion)\build\StyleCop.MSBuild.Targets" Condition="Exists('$(PackagesDir)\StyleCop.MSBuild.$(StyleCopVersion)\build\StyleCop.MSBuild.Targets')" />
