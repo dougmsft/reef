@@ -608,10 +608,6 @@ public final class JobDriver {
         }
 
         bridge.callClrSystemOnStartHandler();
-        try {
-          Thread.sleep(3000);
-        } catch(Exception e) {
-        }
 
         LOG.log(Level.INFO, "Driver Started");
       }
