@@ -17,31 +17,40 @@
 
 using System;
 using org.apache.reef.bridge.message;
-using Org.Apache.REEF.Tang.Annotations;
+using Org.Apache.REEF.Bridge;
 using Org.Apache.REEF.Utilities.Logging;
 using Org.Apache.REEF.Wake.Remote;
+using Org.Apache.REEF.Tang.Annotations;
 
-namespace Org.Apache.REEF.Bridge
+namespace Org.Apache.REEF.Driver.Bridge
 {
     /// <summary>
     /// Observer which handles all of the messages defined in the Java to C# Avro protocol
     /// and invokes the associated target method in the driver.
     /// </summary>
-    public class ClrBridge :
+    internal sealed class ClrBridge :
         IObserver<SystemOnStart>
     {
         private static readonly Logger Logger = Logger.GetLogger(typeof(ClrBridge));
         private Network network;
+        internal DriverBridge driverBridge { get; set; } 
 
         [Inject]
         private ClrBridge(ILocalAddressProvider localAddressProvider)
         {
-            network = new Network(localAddressProvider, this);
+            this.network = new Network(localAddressProvider, this);
         }
 
+        /// <summary>
+        /// Invokes event handlers registered to the driver start event.
+        /// </summary>
         public void OnNext(SystemOnStart systemOnStart)
         {
-            Logger.Log(Level.Info, "SystemOnStart message: " + systemOnStart.dateTime);
+            Logger.Log(Level.Info, "*** SystemOnStart message received");
+
+            DateTime startTime = DateTime.Now;
+            Logger.Log(Level.Info, "*** Start time is " + startTime);
+            driverBridge.StartHandlersOnNext(startTime);
         }
 
         public void OnError(Exception error)

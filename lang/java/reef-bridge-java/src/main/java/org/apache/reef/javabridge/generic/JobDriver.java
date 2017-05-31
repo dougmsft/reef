@@ -607,7 +607,12 @@ public final class JobDriver {
           LOG.log(Level.INFO, "Finished CLR bridge setup for {0}", startTime);
         }
 
-        NativeInterop.callClrSystemOnStartHandler();
+        bridge.callClrSystemOnStartHandler();
+        try {
+          Thread.sleep(3000);
+        } catch(Exception e) {
+        }
+
         LOG.log(Level.INFO, "Driver Started");
       }
     }

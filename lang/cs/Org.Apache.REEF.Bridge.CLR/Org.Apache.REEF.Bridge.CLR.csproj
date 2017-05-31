@@ -46,7 +46,6 @@ under the License.
     <Compile Include="$(SolutionDir)\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
-    <Compile Include="ClrBridge.cs" />
     <Compile Include="Network.cs" />
     <Compile Include="Message\Header.cs" />
     <Compile Include="Message\Protocol.cs" />

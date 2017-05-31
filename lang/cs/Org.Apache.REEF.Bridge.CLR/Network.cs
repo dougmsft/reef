@@ -33,7 +33,7 @@ namespace Org.Apache.REEF.Bridge
     /// <summary>
     /// Avro message protocol network to communicate with the java bridge.
     /// </summary>
-    internal class Network : IObserver<IRemoteMessage<byte[]>>
+    public sealed class Network : IObserver<IRemoteMessage<byte[]>>
     {
         private static readonly Logger Logger = Logger.GetLogger(typeof(Network));
 
