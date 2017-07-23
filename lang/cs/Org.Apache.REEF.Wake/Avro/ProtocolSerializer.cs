@@ -79,7 +79,7 @@ namespace Org.Apache.REEF.Wake.Avro
             var types = new List<Type>(assembly.GetTypes()) { typeof(Header) };
             foreach (Type type in types)
             {
-                if (type.FullName.StartsWith(messageNamespace))
+                if (type.Namespace.StartsWith(messageNamespace))
                 {
                     MethodInfo genericInfo = RegisterMethodInfo.MakeGenericMethod(new[] { type });
                     genericInfo.Invoke(this, null);
@@ -163,7 +163,7 @@ namespace Org.Apache.REEF.Wake.Avro
         /// <param name="data">Byte array containing a header message and message to be deserialized.</param>
         /// <param name="observer">An object which implements the IObserver<>
         /// interface for the message being deserialized.</param>
-        public void Read<T>(byte[] data, IObserver<IMessageInstance<T>> observer)
+        public void Read(byte[] data, object observer)
         {
             try
             {
