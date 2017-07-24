@@ -48,6 +48,7 @@ import org.apache.reef.runtime.yarn.driver.parameters.YarnHeartbeatPeriod;
 import org.apache.reef.tang.InjectionFuture;
 import org.apache.reef.tang.annotations.Parameter;
 import org.apache.reef.util.Optional;
+import org.apache.reef.wake.remote.address.LocalAddressProvider;
 import org.apache.reef.wake.remote.impl.ObjectSerializableCodec;
 
 import javax.inject.Inject;
@@ -68,9 +69,6 @@ final class YarnContainerManager implements AMRMClientAsync.CallbackHandler, NMC
 
   private static final String RUNTIME_NAME = "YARN";
 
-  /** Default hostname to provide in the Application Master registration. */
-  private static final String AM_REGISTRATION_HOST = "";
-
   /** Default port number to provide in the Application Master registration. */
   private static final int AM_REGISTRATION_PORT = -1;
 
@@ -88,7 +86,7 @@ final class YarnContainerManager implements AMRMClientAsync.CallbackHandler, NMC
   private final ContainerRequestCounter containerRequestCounter;
   private final DriverStatusManager driverStatusManager;
   private final String trackingUrl;
-
+  private final String amRegistrationHost;
   private final String jobSubmissionDirectory;
   private final REEFFileNames reefFileNames;
   private final RackNameFormatter rackNameFormatter;
@@ -107,6 +105,7 @@ final class YarnContainerManager implements AMRMClientAsync.CallbackHandler, NMC
       final DriverStatusManager driverStatusManager,
       final REEFFileNames reefFileNames,
       final TrackingURLProvider trackingURLProvider,
+      final LocalAddressProvider addressProvider,
       final RackNameFormatter rackNameFormatter,
       final InjectionFuture<ProgressProvider> progressProvider) throws IOException {
 
@@ -119,7 +118,9 @@ final class YarnContainerManager implements AMRMClientAsync.CallbackHandler, NMC
     this.yarnConf = yarnConf;
     this.yarnProxyUser = yarnProxyUser;
     this.rackNameFormatter = rackNameFormatter;
+
     this.trackingUrl = trackingURLProvider.getTrackingUrl();
+    this.amRegistrationHost = addressProvider.getLocalAddress();
 
     this.resourceManager = AMRMClientAsync.createAMRMClientAsync(yarnRMHeartbeatPeriod, this);
     this.nodeManager = new NMClientAsyncImpl(this);
@@ -128,8 +129,8 @@ final class YarnContainerManager implements AMRMClientAsync.CallbackHandler, NMC
     this.reefFileNames = reefFileNames;
     this.progressProvider = progressProvider;
 
-    LOG.log(Level.FINEST, "Instantiated YarnContainerManager: {0} {1}",
-        new Object[] {this.registration, this.yarnProxyUser});
+    LOG.log(Level.INFO, "Instantiated YarnContainerManager: {0} {1}, trackingUrl: {3}, jobSubmissionDirectory: {4}.",
+        new Object[] {this.registration, this.yarnProxyUser, this.trackingUrl, this.jobSubmissionDirectory});
   }
 
   /**
@@ -334,10 +335,10 @@ final class YarnContainerManager implements AMRMClientAsync.CallbackHandler, NMC
           });
 
       LOG.log(Level.FINE, "YARN registration: register AM at \"{0}:{1}\" tracking URL \"{2}\"",
-          new Object[] {AM_REGISTRATION_HOST, AM_REGISTRATION_PORT, this.trackingUrl});
+          new Object[] {amRegistrationHost, AM_REGISTRATION_PORT, this.trackingUrl});
 
       this.registration.setRegistration(this.resourceManager.registerApplicationMaster(
-          AM_REGISTRATION_HOST, AM_REGISTRATION_PORT, this.trackingUrl));
+          amRegistrationHost, AM_REGISTRATION_PORT, this.trackingUrl));
 
       LOG.log(Level.FINE, "YARN registration: AM registered: {0}", this.registration);
 
