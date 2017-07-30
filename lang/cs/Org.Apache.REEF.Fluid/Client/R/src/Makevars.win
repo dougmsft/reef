@@ -1,0 +1,2 @@
+PKG_CXXFLAGS = -std=c++11 -I"../../c++/include"
+PKG_LIBS = -L"../../c++/build/Debug"
