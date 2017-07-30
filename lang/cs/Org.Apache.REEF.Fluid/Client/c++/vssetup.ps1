@@ -1,4 +1,10 @@
 
+$NUGET_EXE = "./nuget.exe"
+# Try download NuGet.exe if do not exist.
+if (!(Test-Path $NUGET_EXE)) {
+    Invoke-WebRequest -Uri http://dist.nuget.org/win-x86-commandline/v3.5.0/NuGet.exe -OutFile $NUGET_EXE
+}
+
 # Call nuget to restore the packages
 & .\nuget.exe restore .\packages.config -PackagesDirectory .\packages
 

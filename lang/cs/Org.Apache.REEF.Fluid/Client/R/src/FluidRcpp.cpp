@@ -8,18 +8,19 @@
 //#undef ERROR
 #include <Rcpp.h>
 #include <sstream>
+#include <vector>
 #include <exception>
 #include <boost/iostreams/stream.hpp>
 #include <boost/iostreams/device/array.hpp>
 //#include <fluid/Client.h>
-#include "FluidClientInterface.h"
+#include "FluidInterface.h"
 
 
 using namespace Rcpp;
 
 // [[Rcpp::export(name=".initialize")]]
 List rcpp_initialize(std::string const & packageDirectory) {
-    int error = Initialize(packageDirectory);
+    int error = fluid::Initialize(packageDirectory);
     if (error > 0)
     {
         return List::create(Named("error") = error,
@@ -38,8 +39,7 @@ List rcpp_connect(std::string const & ipAddress, int port) {
 
     try
     {
-        ConnectFoo("1.2.3.4", 20);
-        //Connect(ipAddress.c_str(), port);
+        fluid::Connect(ipAddress.c_str(), port);
     }
     catch(std::exception ex)
     {
@@ -69,17 +69,12 @@ List rcpp_disconnect() {
 
 // [[Rcpp::export(name=".submitJob")]]
 List rcpp_submitJob(const Rcpp::RawVector & environment, const Rcpp::RawVector & dataFrame) {
-    boost::iostreams::array_source envSource((char*)&environment[0], environment.size());
-    boost::iostreams::stream<boost::iostreams::array_source> envStream(envSource);
+    std::vector<unsigned char> envVec(environment.length());
+    std::copy(environment.begin(), environment.end(), envVec.begin());
+    std::vector<unsigned char> dataVec(dataFrame.length());
+    std::copy(dataFrame.begin(), dataFrame.end(), dataVec.begin());
 
-    boost::iostreams::array_source dataSource((char*)&dataFrame[0], dataFrame.size());
-    boost::iostreams::stream<boost::iostreams::array_source> dataStream(dataSource);
-
-    //fluid::SubmitRTask(dataStream, dataStream..length());
-
-    return List::create(Named("env") = "test");
-
-//return List::create(Named("env") = "test",
- //                       Named("data") = "test2");
+    std::string jobId = fluid::SubmitRTask(envVec);
+    return List::create(Named("id") = jobId);
 }
 
