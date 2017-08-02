@@ -1,6 +1,6 @@
 #include <fluid/Client.h>
-#include <fluid/RTaskMsg.h>
-#include <fluid/JuliaTaskMsg.h>
+#include <fluid/message/RTaskMsg.h>
+#include <fluid/message/JuliaTaskMsg.h>
 #include <avro/Compiler.hh>
 #include <avro/ValidSchema.hh>
 
@@ -8,7 +8,7 @@
 
 //! \brief Makes a connection to the remote server
 //! \detailed Connects to the remote server given the ip address and port. If the connection fails or times out
-//! an exception is thrown 
+//! an exception is thrown
 //! \param ipAddress The ip address of the remote server
 //! \param port The port of the remote server
 void Connect(const char* ipAddress, int port)

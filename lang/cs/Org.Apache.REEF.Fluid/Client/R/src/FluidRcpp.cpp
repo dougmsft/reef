@@ -1,4 +1,19 @@
-// We can now use the BH package
+// Licensed to the Apache Software Foundation (ASF) under one
+// or more contributor license agreements.  See the NOTICE file
+// distributed with this work for additional information
+// regarding copyright ownership.  The ASF licenses this file
+// to you under the Apache License, Version 2.0 (the
+// "License"); you may not use this file except in compliance
+// with the License.  You may obtain a copy of the License at
+//
+//   http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing,
+// software distributed under the License is distributed on an
+// "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+// KIND, either express or implied.  See the License for the
+// specific language governing permissions and limitations
+// under the License.
 
 // [[Rcpp::depends(BH)]]
 
@@ -6,32 +21,30 @@
 //#undef Free
 //#include <windows.h>
 //#undef ERROR
+
 #include <Rcpp.h>
 #include <sstream>
 #include <vector>
 #include <exception>
 #include <boost/iostreams/stream.hpp>
 #include <boost/iostreams/device/array.hpp>
-//#include <fluid/Client.h>
-#include "FluidInterface.h"
-
+#include "FluidCoreInterface.h"
 
 using namespace Rcpp;
+
 
 // [[Rcpp::export(name=".initialize")]]
 List rcpp_initialize(std::string const & packageDirectory) {
     int error = fluid::Initialize(packageDirectory);
     if (error > 0)
     {
-        return List::create(Named("error") = error,
-                            Named("dir") = packageDirectory);
+        return List::create(Named("error") = error, Named("dir") = packageDirectory);
     }
-
     return List::create(Named("dir") = packageDirectory);
 }
 
 List rcpp_shutdown(){
-
+    return NULL;
 }
 
 // [[Rcpp::export(name=".connect")]]
@@ -43,10 +56,8 @@ List rcpp_connect(std::string const & ipAddress, int port) {
     }
     catch(std::exception ex)
     {
-        return List::create(Named("connected") = false,
-                            Named("error") = ex.what());
+        return List::create(Named("connected") = false, Named("error") = ex.what());
     }
-
     return List::create(Named("connected") = true);
 }
 
@@ -62,7 +73,6 @@ List rcpp_disconnect() {
         return List::create(Named("connected") = false,
                             Named("error") = ex.what());
     }
-
     return List::create(Named("connected") = false);
 }
 
@@ -77,4 +87,3 @@ List rcpp_submitJob(const Rcpp::RawVector & environment, const Rcpp::RawVector &
     std::string jobId = fluid::SubmitRTask(envVec);
     return List::create(Named("id") = jobId);
 }
-

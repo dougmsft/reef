@@ -15,19 +15,21 @@
 // specific language governing permissions and limitations
 // under the License.
 
-#ifndef fluid_export_h
-#define fluid_export_h
+#ifndef FLUID_LIBRARY_INTERFACE_H
+#define FLUID_LIBRARY_INTERFACE_H
 
-#if defined(_WIN32)
-    #if defined(FLUID_DYN_LINK)
-        #define FLUID_DECL  __declspec(dllexport)
-    #else
-        #define FLUID_DECL __declspec(dllimport)
-    #endif // FLUID_DYN_LINK
-#endif // _WIN32
+#include <string>
+#include <vector>
 
-#ifndef FLUID_DECL
-#define FLUID_DECL
-#endif
+namespace fluid {
+    std::string GetWorkingDirectory();
+    int Initialize(std::string const & workingDirectory);
+    void Shutdown();
+    void Connect(std::string const & ipAddress, int port);
+    void Disconnect();
 
-#endif
+    std::string SubmitRTask(std::vector<unsigned char> & buffer);
+    std::string SubmitJuliaTask(std::vector<unsigned char> & buffer);
+}
+
+#endif // FLUID_LIBRARY_INTERFACE_H

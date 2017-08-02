@@ -1,41 +1,47 @@
+// Licensed to the Apache Software Foundation (ASF) under one
+// or more contributor license agreements.  See the NOTICE file
+// distributed with this work for additional information
+// regarding copyright ownership.  The ASF licenses this file
+// to you under the Apache License, Version 2.0 (the
+// "License"); you may not use this file except in compliance
+// with the License.  You may obtain a copy of the License at
+//
+//   http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing,
+// software distributed under the License is distributed on an
+// "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+// KIND, either express or implied.  See the License for the
+// specific language governing permissions and limitations
+// under the License.
+
 #include <windows.h>
 #include <vector>
-#include "FluidInterface.h"
-
+#include "FluidCoreInterface.h"
 
 static HINSTANCE dllHandle;
 #define MAX_ID_LENGTH  128
 
-// Library function declarations 
+// Fluid library function signatures.
 typedef void (*ConnectFunc)(const char* ipAddress, int port);
 typedef void (*DisconnectFunc)();
 typedef const char* (*SubmitRTaskFunc)(const unsigned char* byteArray, int size, char* id, int idLength);
 typedef const char* (*SubmitJuliaTaskFunc)(const unsigned char* byteArray, int size, char* id, int idLength);
 
-
+// Fluid library function pointers.
 static ConnectFunc FCConnect = nullptr;
 static DisconnectFunc FCDisconnect = nullptr;
 static SubmitRTaskFunc FCSubmitRTask = nullptr;
 static SubmitJuliaTaskFunc FCSubmitJuliaTask = nullptr;
 
-std::string GetWorkingDirectory()
-{
-    TCHAR Buffer[MAX_PATH];
-    DWORD dwRet;
-
-    dwRet = GetCurrentDirectory(MAX_PATH, Buffer);
-
-    return std::string(Buffer);
-}
-
-//! \brief Initializes the library and function pointers
-//! \detailed The fluidclient library is loaded at runtime. This will attempt to load the library given the 
+//! \brief Loads the core Fluid library
+//! \detailed The fluidclient library is loaded at runtime. This will attempt to load the library given the
 //!    working directory and find the functions within the library.
-//! \param workingDirectory the directory of where to find the library 
+//! \param fluidLibDir The directory where the Fluid core library binary is located.
 //! \return 0 if successful, non-zero if not successful.
-int fluid::Initialize(std::string const& workingDirectory)
+int fluid::Initialize(std::string const& fluidLibDir)
 {
-    std::string fullPath = workingDirectory + "/fluidclient.dll";
+    std::string fullPath = fluidLibDir + "/fluid_core_client.dll";
     dllHandle = LoadLibrary(fullPath.c_str());
     if (dllHandle == NULL)
     {
@@ -47,7 +53,7 @@ int fluid::Initialize(std::string const& workingDirectory)
     FCSubmitRTask = (SubmitRTaskFunc)GetProcAddress(dllHandle, "SubmitRTask");
     FCSubmitJuliaTask = (SubmitJuliaTaskFunc)GetProcAddress(dllHandle, "SubmitJuliaTask");
 
-    return 0;
+    return !(FCConnect && FCDisconnect && FCSubmitRTask && FCSubmitJuliaTask);
 }
 
 //! \brief Helper function to clear function pointers
@@ -60,7 +66,7 @@ void ClearFunctionPtrs()
 }
 
 
-//! \brief Shutsdown the library and clears function pointers
+//! \brief Unload fluid library.
 void fluid::Shutdown()
 {
     if (dllHandle != NULL)
@@ -85,7 +91,7 @@ void fluid::Disconnect()
     return FCDisconnect();
 }
 
-std::string fluid::SubmitRTask(std::vector<unsigned char> & buffer) 
+std::string fluid::SubmitRTask(std::vector<unsigned char> & buffer)
 {
     char id[MAX_ID_LENGTH];
     memset(id, 0, sizeof(char) * MAX_ID_LENGTH);
@@ -94,7 +100,7 @@ std::string fluid::SubmitRTask(std::vector<unsigned char> & buffer)
     return std::move(std::string(id));
 }
 
-std::string fluid::SubmitJuliaTask(std::vector<unsigned char> & buffer) 
+std::string fluid::SubmitJuliaTask(std::vector<unsigned char> & buffer)
 {
     #define MAX_ID_LENGTH  128
     char id[MAX_ID_LENGTH];
