@@ -1,0 +1,15 @@
+[
+  {
+    "namespace": "Org.Apache.REEF.Fluid.Message",
+    "type":"record",
+    "name":"ShutdownMsg",
+    "doc": "Notifies the Distributed Language driver to shutdown.",
+    "fields":[
+      {
+        "name":"command",
+        "doc":"Shutdown command for the driver.",
+        "type":"int"
+      }
+    ]
+  }
+]

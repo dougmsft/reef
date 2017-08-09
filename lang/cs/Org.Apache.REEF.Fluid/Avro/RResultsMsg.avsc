@@ -1,0 +1,20 @@
+[
+  {
+    "namespace": "Org.Apache.REEF.Fluid.Message",
+    "type":"record",
+    "name":"RResultsMsg",
+    "doc":"Results from the execution an R function on a REEF evaluator.",
+    "fields":[
+      {
+        "name":"uuid",
+        "doc": "Universially unique indentifier of the task.",
+        "type": "string"
+      },
+      {
+        "name":"value",
+        "doc":"Results generated from the execution of an R function on a REEF evaluator.",
+        "type":"string"
+      }
+    ]
+  }
+]

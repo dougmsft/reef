@@ -1,0 +1,25 @@
+[
+  {
+    "namespace": "Org.Apache.REEF.Fluid.Message",
+    "type":"record",
+    "name":"RTaskMsg",
+    "doc":"Request to execute an R function with associated data on a REEF evaluator",
+    "fields":[
+      {
+        "name": "uuid",
+        "doc": "Universially unique indentifier of the task.",
+        "type": "string"
+      },
+      {
+        "name":"function",
+        "doc":"R function to be executed on a REEF evaluator.",
+        "type":"string"
+      },
+      {
+        "name":"data",
+        "doc":"The data requried by the R function.",
+        "type":"string"
+      }
+    ]
+  }
+]
