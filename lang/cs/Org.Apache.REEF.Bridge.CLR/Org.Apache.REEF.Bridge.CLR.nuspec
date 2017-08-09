@@ -25,20 +25,20 @@ under the License.
     <licenseUrl>http://www.apache.org/licenses/LICENSE-2.0</licenseUrl>
     <projectUrl>http://reef.apache.org/</projectUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
-    <description>Driver for REEF.NET</description>
+    <description>Avro bridge for REEF.NET</description>
     <copyright>The Apache Software Foundation</copyright>
     <dependencies>
       <dependency id="Microsoft.Hadoop.Avro" version="1.5.6" />
-      <dependency id="protobuf-net" version="2.0.0.668" />
       <dependency id="Org.Apache.REEF.Common" version="$version$" />
-      <dependency id="Org.Apache.REEF.Utilities" version="$version$" />
+      <dependency id="Org.Apache.REEF.IO" version="$version$" />
       <dependency id="Org.Apache.REEF.Tang" version="$version$" />
+      <dependency id="Org.Apache.REEF.Utilities" version="$version$" />
       <dependency id="Org.Apache.REEF.Wake" version="$version$" />
     </dependencies>
   </metadata>
 
   <files>
-    <file src="..\bin\$Platform$\$Configuration$\Org.Apache.REEF.Driver\Org.Apache.REEF.Bridge.CLR.dll" target="lib\net45" />
-    <file src="..\bin\$Platform$\$Configuration$\Org.Apache.REEF.Driver\Org.Apache.REEF.Bridge.CLR.pdb" target="lib\net45" />
+    <file src="..\bin\$Platform$\$Configuration$\Org.Apache.REEF.Bridge.CLR\Org.Apache.REEF.Bridge.CLR.dll" target="lib\net45" />
+    <file src="..\bin\$Platform$\$Configuration$\Org.Apache.REEF.Bridge.CLR\Org.Apache.REEF.Bridge.CLR.pdb" target="lib\net45" />
   </files>
 </package>
