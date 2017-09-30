@@ -109,6 +109,7 @@ namespace Org.Apache.REEF.Wake.Avro
                 var msgObserver = observer as IObserver<IMessageInstance<TMessage>>;
                 if (msgObserver != null)
                 {
+                    Logr.Log(Level.Info, "Invoking message observer {0} with message {1}", msgObserver, message);
                     msgObserver.OnNext(new MessageInstance<TMessage>(sequence, message));
                 }
                 else
@@ -163,13 +164,14 @@ namespace Org.Apache.REEF.Wake.Avro
         /// <param name="data">Byte array containing a header message and message to be deserialized.</param>
         /// <param name="observer">An object which implements the IObserver<>
         /// interface for the message being deserialized.</param>
-        public void Read<T>(byte[] data, IObserver<IMessageInstance<T>> observer)
+        public void Read(byte[] data, object observer)
         {
             try
             {
                 using (MemoryStream stream = new MemoryStream(data))
                 {
                     Header head = headerSerializer.Deserialize(stream);
+                    Logr.Log(Level.Info, "Message header {0}", head);
                     Deserialize deserialize;
                     if (deserializeMap.TryGetValue(head.className, out deserialize))
                     {
