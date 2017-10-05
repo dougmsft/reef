@@ -19,10 +19,7 @@ package org.apache.reef.util;
 
 import org.apache.reef.util.exception.InvalidIdentifierException;
 
-import java.util.concurrent.FutureTask;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -43,6 +40,7 @@ public final class MultiAsyncToSync {
   private final ConcurrentHashMap<Long, ComplexCondition> sleeperMap = new ConcurrentHashMap<>();
   private final long timeoutPeriod;
   private final TimeUnit timeoutUnits;
+  private final ExecutorService executor;
 
   /**
    * Initialize a multiple asynchronous to synchronous object with a specified timeout value.
@@ -53,6 +51,20 @@ public final class MultiAsyncToSync {
   public MultiAsyncToSync(final long timeoutPeriod, final TimeUnit timeoutUnits) {
     this.timeoutPeriod = timeoutPeriod;
     this.timeoutUnits = timeoutUnits;
+    this.executor = null;
+  }
+
+  /**
+   * Initialize a multiple asynchronous to synchronous object with a specified timeout value.
+   * @param timeoutPeriod The length of time in units given by the the timeoutUnits
+   *                      parameter before the condition automatically times out.
+   * @param timeoutUnits The unit of time for the timeoutPeriod parameter.
+   * @param executor An executor service used to run async processors in the block method.
+   */
+  public MultiAsyncToSync(final long timeoutPeriod, final TimeUnit timeoutUnits, final ExecutorService executor) {
+    this.timeoutPeriod = timeoutPeriod;
+    this.timeoutUnits = timeoutUnits;
+    this.executor = executor;
   }
 
   /**
@@ -82,11 +94,15 @@ public final class MultiAsyncToSync {
       addSleeper(identifier, call);
       // Invoke the caller's asynchronous processing while holding the lock
       // so a wakeup cannot occur before the caller sleeps.
-      asyncProcessor.run();
+      if (executor == null) {
+        asyncProcessor.run();
+      } else {
+        executor.execute(asyncProcessor);
+      }
       // Put the caller to sleep until the ack comes back. Note: we atomically
       // give up the look as the caller sleeps and atomically reacquire the
       // the lock as we wake up.
-      LOG.log(Level.FINER, "Putting caller to sleep on identifier [{0}]", identifier);
+      LOG.log(Level.INFO, "Putting caller to sleep on identifier [{0}]", identifier);
       timeoutOccurred = !call.await();
       if (timeoutOccurred) {
         LOG.log(Level.SEVERE, "Call timed out on identifier [{0}]", identifier);
@@ -115,7 +131,7 @@ public final class MultiAsyncToSync {
     }
     try {
       call.lock();
-      LOG.log(Level.FINER, "Waking caller sleeping on identifier [{0}]", identifier);
+      LOG.log(Level.INFO, "Waking caller sleeping on identifier [{0}]", identifier);
       call.signal();
     } finally {
       call.unlock();

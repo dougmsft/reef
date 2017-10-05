@@ -16,21 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-[
-  /*
-   * Notify Java bridge CLR bridge is ininitialized.
-   */
-  {
-    "namespace":"org.apache.reef.bridge.message",
-    "type":"record",
-    "name":"Protocol",
-    "doc":"Negotiate Java/C# bridge protocol messages.",
-    "fields":[
-      {
-        "name":"offset",
-        "type":"int",
-        "doc":"The index offset of the message identifiers."
-      }
-    ]
-  }
-]
+/**
+ * The Java-side of the CLR/Java bridge interop.
+ */
+package org.apache.reef.bridge;
