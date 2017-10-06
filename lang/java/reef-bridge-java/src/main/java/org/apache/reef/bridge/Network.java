@@ -34,6 +34,7 @@ import org.apache.reef.wake.remote.ports.TcpPortProvider;
 import org.apache.reef.wake.impl.LoggingEventHandler;
 import org.apache.reef.wake.remote.address.LocalAddressProvider;
 
+import javax.inject.Inject;
 import java.net.InetSocketAddress;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
@@ -59,6 +60,7 @@ public final class Network {
    * @param localAddressProvider Local address provider used to find open port.
    * @param observer A multiobserver instance that will receive all incoming messages.
    */
+  @Inject
   public Network(final LocalAddressProvider localAddressProvider, final MultiObserver observer) {
     LOG.log(Level.INFO, "Initializing");
 
@@ -73,7 +75,7 @@ public final class Network {
 
       // Instantiate a port provider.
       final Injector injector = Tang.Factory.getTang().newInjector();
-      final TcpPortProvider tcpPortProvider = Tang.Factory.getTang().newInjector().getInstance(TcpPortProvider.class);
+      final TcpPortProvider tcpPortProvider = injector.getInstance(TcpPortProvider.class);
 
       // Instantiate a remote manager to handle java-C# bridge communication.
       final RemoteManagerFactory remoteManagerFactory = injector.getInstance(RemoteManagerFactory.class);
@@ -95,8 +97,7 @@ public final class Network {
       remoteManager.registerHandler(byte[].class, this.localObserver);
 
     } catch (final Exception e) {
-      e.printStackTrace();
-      LOG.log(Level.SEVERE, "Initialization failed: " + e.getMessage());
+      LOG.log(Level.SEVERE, "Initialization failed: ", e);
     }
   }
 
@@ -108,8 +109,8 @@ public final class Network {
     if (sender != null) {
       sender.onNext(serializer.write(message, identifier));
     } else {
-      LOG.log(Level.SEVERE, "Attempt to send message ["
-          + message.getClass().getName() + "] before network is initialized");
+      LOG.log(Level.SEVERE,
+        "Attempt to send message [{0}] before network is initialized", message.getClass().getName());
     }
   }
 
@@ -126,7 +127,7 @@ public final class Network {
    */
   private class LocalObserver implements EventHandler<RemoteMessage<byte[]>> {
     private final Network network;
-    private MultiObserver messageObserver;
+    private final MultiObserver messageObserver;
 
     /**
      * Associate the local observer with the specified network and message observer.
@@ -143,7 +144,7 @@ public final class Network {
      * @param message A RemoteMessage<byte[]> object which will be deserialized.
      */
     public void onNext(final RemoteMessage<byte[]> message) {
-      LOG.log(Level.INFO, "Received remote message: " + message.toString());
+      LOG.log(Level.INFO, "Received remote message: {0}", message);
 
       if (network.sender == null) {
         // Instantiate a network connection to the C# side of the bridge.
@@ -151,7 +152,7 @@ public final class Network {
         // C# BRIDGE, WE RECEIVE IT FIRST, AND CONNECT TO THE SPOOFER,
         // THOUGH THE TIME WINDOW IS VERY SMALL.
         final RemoteIdentifier remoteIdentifier = message.getIdentifier();
-        LOG.log(Level.INFO, "Connecting to: " + remoteIdentifier.toString());
+        LOG.log(Level.INFO, "Connecting to: {0}", remoteIdentifier);
         network.sender = remoteManager.getHandler(remoteIdentifier, byte[].class);
       }
 

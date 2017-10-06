@@ -189,10 +189,10 @@ public final class JobDriver {
       if (httpPortNumber != null) {
         try {
           final File outputFileName = new File(reefFileNames.getDriverHttpEndpoint());
-          BufferedWriter out = new BufferedWriter(
-              new OutputStreamWriter(new FileOutputStream(outputFileName), StandardCharsets.UTF_8));
-          out.write(localAddressProvider.getLocalAddress() + ":" + httpPortNumber + "\n");
-          out.close();
+          try (final BufferedWriter out = new BufferedWriter(
+                new OutputStreamWriter(new FileOutputStream(outputFileName), StandardCharsets.UTF_8))) {
+            out.write(localAddressProvider.getLocalAddress() + ":" + httpPortNumber + "\n");
+          }
         } catch (IOException ex) {
           throw new RuntimeException(ex);
         }
@@ -203,12 +203,12 @@ public final class JobDriver {
       final String javaBridgePort = Integer.toString(javaBridgeAddress.getPort());
       try {
         final File outputFileName = new File(reefFileNames.getDriverJavaBridgeEndpoint());
-        BufferedWriter out = new BufferedWriter(
-            new OutputStreamWriter(new FileOutputStream(outputFileName), StandardCharsets.UTF_8));
-        String address = localAddressProvider.getLocalAddress() + ":" + javaBridgePort;
-        LOG.log(Level.INFO, "Java bridge address: " + address);
-        out.write(address + "\n");
-        out.close();
+        try(final BufferedWriter out = new BufferedWriter(
+              new OutputStreamWriter(new FileOutputStream(outputFileName), StandardCharsets.UTF_8))) {
+          String address = localAddressProvider.getLocalAddress() + ":" + javaBridgePort;
+          LOG.log(Level.INFO, "Java bridge address: " + address);
+          out.write(address + "\n");
+        }
       } catch (IOException ex) {
         throw new RuntimeException(ex);
       }

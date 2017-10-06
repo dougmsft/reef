@@ -26,6 +26,7 @@ import org.apache.reef.util.exception.InvalidIdentifierException;
 import org.apache.reef.wake.impl.MultiObserverImpl;
 import org.apache.reef.wake.remote.address.LocalAddressProvider;
 
+import javax.inject.Inject;
 import java.net.InetSocketAddress;
 import java.util.Date;
 import java.util.concurrent.Callable;
@@ -79,6 +80,7 @@ public final class JavaBridge extends MultiObserverImpl<JavaBridge> {
    * Implements the RPC interface to the C# side of the bridge.
    * @param localAddressProvider Used to find an available port on the local host.
    */
+  @Inject
   public JavaBridge(final LocalAddressProvider localAddressProvider) {
     this.network = new Network(localAddressProvider, this);
   }
@@ -114,8 +116,7 @@ public final class JavaBridge extends MultiObserverImpl<JavaBridge> {
    * @param protocol A reference to the received Avro protocol message.
    */
   public void onNext(final long identifier, final BridgeProtocol protocol) {
-    LOG.log(Level.INFO, "+++++++Received protocol message: ["
-        + Long.toString(identifier) + "] " + protocol.getOffset().toString());
+    LOG.log(Level.INFO, "Received protocol message: [{0}] {1}", new Object[] {identifier, protocol.getOffset()});
   }
 
   /**
@@ -127,7 +128,7 @@ public final class JavaBridge extends MultiObserverImpl<JavaBridge> {
    */
   public void onNext(final long identifier, final Acknowledgement acknowledgement)
         throws InvalidIdentifierException, InterruptedException {
-    LOG.log(Level.INFO, "Received acknowledgement message for id = [" + Long.toString(identifier) + "]");
+    LOG.log(Level.INFO, "Received acknowledgement message for id = [{0}]", identifier);
     blocker.release(acknowledgement.getMessageIdentifier());
   }
 
@@ -136,8 +137,8 @@ public final class JavaBridge extends MultiObserverImpl<JavaBridge> {
    * until an acknowledgement message is received.
    */
   public void callClrSystemOnStartHandler() throws InvalidIdentifierException, InterruptedException {
-    LOG.log(Level.INFO, "+++++++ callClrSystemOnStartHandler called");
-    Date date = new Date();
+    LOG.log(Level.INFO, "callClrSystemOnStartHandler called");
+    final Date date = new Date();
     final long identifier = idCounter.getAndIncrement();
     blocker.block(identifier, new FutureTask<>(new MessageSender(identifier, new SystemOnStart(date.getTime()))));
   }

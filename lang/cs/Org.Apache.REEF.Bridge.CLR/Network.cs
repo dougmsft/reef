@@ -21,9 +21,10 @@ using System.IO;
 using System.Net;
 using org.apache.reef.bridge.message;
 using Org.Apache.REEF.Common.Files;
-using Org.Apache.REEF.IO.FileSystem;
-using Org.Apache.REEF.IO.FileSystem.Local;
+using Org.Apache.REEF.Tang.Annotations;
+using Org.Apache.REEF.Tang.Formats;
 using Org.Apache.REEF.Tang.Implementations.Tang;
+using Org.Apache.REEF.Tang.Util;
 using Org.Apache.REEF.Utilities.Logging;
 using Org.Apache.REEF.Wake.Avro;
 using Org.Apache.REEF.Wake.Remote;
@@ -31,6 +32,23 @@ using Org.Apache.REEF.Wake.Remote.Impl;
 
 namespace Org.Apache.REEF.Bridge
 {
+    public sealed class NetworkOptions
+    {
+        [NamedParameter(Documentation = "Message observer bridge Avro messages")]
+        public class MessageObserver : Name<object>
+        {
+        }
+
+        public sealed class ModuleBuilder : ConfigurationModuleBuilder
+        {
+            public static readonly RequiredParameter<object> MessageObserver = new RequiredParameter<object>();
+
+            public static readonly ConfigurationModule Config = new ModuleBuilder()
+                .BindNamedParameter(GenericType<NetworkOptions.MessageObserver>.Class, MessageObserver)
+                .Build();
+        }
+    }
+
     /// <summary>
     /// The CLR Bridge Network class agregates a RemoteManager and
     /// Protocol Serializer to provide a simple send/receive interface
@@ -39,40 +57,47 @@ namespace Org.Apache.REEF.Bridge
     public sealed class Network
     {
         private static readonly Logger Logger = Logger.GetLogger(typeof(Network));
-        private IRemoteManager<byte[]> remoteManager;
-        private IObserver<byte[]> remoteObserver;
-        private LocalObserver localObserver;
-        private BlockingCollection<byte[]> queue = new BlockingCollection<byte[]>();
-        private ProtocolSerializer serializer;
+        private readonly ProtocolSerializer serializer =
+            new ProtocolSerializer(typeof(Network).Assembly, "org.apache.reef.bridge.message");
+        private readonly BlockingCollection<byte[]> queue = new BlockingCollection<byte[]>();
+        private readonly IRemoteManager<byte[]> remoteManager;
+        private readonly IObserver<byte[]> remoteObserver;
+        private readonly LocalObserver localObserver;
 
         /// <summary>
         /// Construct a network stack using the wate remote manager.
         /// </summary>
         /// <param name="localAddressProvider">An address provider used to obtain a local IP address on an open port.</param>
         /// <param name="messageObserver">Message receiver that implements IObserver interface for each message to be processed</param>
-        public Network(ILocalAddressProvider localAddressProvider, object messageObserver)
+        [Inject]
+        public Network(
+            ILocalAddressProvider localAddressProvider,
+            [Parameter(typeof(NetworkOptions.MessageObserver))] object messageObserver)
         {
-            this.serializer = new ProtocolSerializer(typeof(Network).Assembly, "org.apache.reef.bridge.message");
             this.localObserver = new LocalObserver(serializer, messageObserver);
 
-            // Instantiate a file system proxy.
-            IFileSystem fileSystem = TangFactory.GetTang()
-                .NewInjector(LocalFileSystemConfiguration.ConfigurationModule.Build())
-                .GetInstance<IFileSystem>();
-
             // Get the path to the bridge name server endpoint file.
-            string javaBridgeAddress = null;
-            REEFFileNames fileNames = new REEFFileNames();
-            using (FileStream stream = File.Open(fileNames.GetDriverJavaBridgeEndpoint(), FileMode.Open))
-            {
-                using (StreamReader reader = new StreamReader(stream))
-                {
-                    javaBridgeAddress = reader.ReadToEnd();
-                }
-            }
-            Logger.Log(Level.Info, string.Format("Name Server Address: {0}", (javaBridgeAddress == null) ? "NULL" : javaBridgeAddress));
+            string javaBridgeAddress = GetJavaBridgeAddress();
 
-            BuildRemoteManager(localAddressProvider, javaBridgeAddress);
+            // Instantiate the remote manager.
+            IRemoteManagerFactory remoteManagerFactory =
+                TangFactory.GetTang().NewInjector().GetInstance<IRemoteManagerFactory>();
+            remoteManager = remoteManagerFactory.GetInstance(localAddressProvider.LocalAddress, new ByteCodec());
+
+            // Listen to the java bridge on the local end point.
+            remoteManager.RegisterObserver(localObserver);
+            Logger.Log(Level.Info, "Local observer listening to java bridge on: [{0}]", remoteManager.LocalEndpoint);
+
+            // Instantiate a remote observer to send messages to the java bridge.
+            string[] javaAddressStrs = javaBridgeAddress.Split(':');
+            IPAddress javaBridgeIpAddress = IPAddress.Parse(javaAddressStrs[0]);
+            int port = int.Parse(javaAddressStrs[1]);
+            IPEndPoint javaIpEndPoint = new IPEndPoint(javaBridgeIpAddress, port);
+            remoteObserver = remoteManager.GetRemoteObserver(javaIpEndPoint);
+            Logger.Log(Level.Info, "Connecting to java bridge on: [{0}]", javaIpEndPoint);
+
+            // Negotiate the protocol.
+            Send(0, new BridgeProtocol(100));
         }
 
         /// <summary>
@@ -80,7 +105,7 @@ namespace Org.Apache.REEF.Bridge
         /// </summary>
         /// <param name="identifier">A long value that which is the unique sequence identifier of the message.</param>
         /// <param name="message">An object reference to a message in the org.apache.reef.bridge.message package.</param>
-        public void send(long identifier, object message)
+        public void Send(long identifier, object message)
         {
             Logger.Log(Level.Info, "Sending message: {0}", message);
             remoteObserver.OnNext(serializer.Write(message, identifier));
@@ -93,9 +118,9 @@ namespace Org.Apache.REEF.Bridge
         /// </summary>
         private class LocalObserver : IObserver<IRemoteMessage<byte[]>>
         {
-            private ProtocolSerializer serializer;
-            private object messageObserver;
-
+            private readonly ProtocolSerializer serializer;
+            private readonly object messageObserver;
+            [Inject]
             public LocalObserver(ProtocolSerializer serializer, object messageObserver)
             {
                 this.serializer = serializer;
@@ -120,7 +145,7 @@ namespace Org.Apache.REEF.Bridge
             /// <param name="error">The exception generated in the transport layer.</param>
             public void OnError(Exception error)
             {
-                Logger.Log(Level.Info, "Error: [" + error.Message + "]");
+                Logger.Log(Level.Info, "Error: [{0}]", error.Message);
             }
 
             /// <summary>
@@ -133,33 +158,22 @@ namespace Org.Apache.REEF.Bridge
         }
 
         /// <summary>
-        /// Construct a remote manager to implement the low level network transport.
+        /// Retrieves the address of the java bridge.
         /// </summary>
-        /// <param name="localAddressProvider">An address provider used to obtain a local IP address on an open port.</param>
-        /// <param name="javaBridgeAddress">A string which contains the IP and port of the java bridge.</param>
-        private void BuildRemoteManager(
-            ILocalAddressProvider localAddressProvider,
-            string javaBridgeAddress)
+        /// <returns>A string containing the IP address and port of the Java bridge.</returns>
+        private string GetJavaBridgeAddress()
         {
-            // Instantiate the remote manager.
-            IRemoteManagerFactory remoteManagerFactory =
-                TangFactory.GetTang().NewInjector().GetInstance<IRemoteManagerFactory>();
-            remoteManager = remoteManagerFactory.GetInstance(localAddressProvider.LocalAddress, new ByteCodec());
-
-            // Listen to the java bridge on the local end point.
-            remoteManager.RegisterObserver(localObserver);
-            Logger.Log(Level.Info, string.Format("Local observer listening to java bridge on: [{0}]", remoteManager.LocalEndpoint.ToString()));
-
-            // Instantiate a remote observer to send messages to the java bridge.
-            string[] javaAddressStrs = javaBridgeAddress.Split(':');
-            IPAddress javaBridgeIpAddress = IPAddress.Parse(javaAddressStrs[0]);
-            int port = int.Parse(javaAddressStrs[1]);
-            IPEndPoint javaIpEndPoint = new IPEndPoint(javaBridgeIpAddress, port);
-            remoteObserver = remoteManager.GetRemoteObserver(javaIpEndPoint);
-            Logger.Log(Level.Info, string.Format("Connecting to java bridge on: [{0}]", javaIpEndPoint.ToString()));
-
-            // Negotiate the protocol.
-            send(0, new BridgeProtocol(100));
+            string javaBridgeAddress = null;
+            REEFFileNames fileNames = TangFactory.GetTang().NewInjector().GetInstance<REEFFileNames>();
+            using (FileStream stream = File.Open(fileNames.GetDriverJavaBridgeEndpoint(), FileMode.Open))
+            {
+                using (StreamReader reader = new StreamReader(stream))
+                {
+                    javaBridgeAddress = reader.ReadToEnd();
+                }
+            }
+            Logger.Log(Level.Info, "Name Server Address: {0}", javaBridgeAddress);
+            return javaBridgeAddress;
         }
     }
 }

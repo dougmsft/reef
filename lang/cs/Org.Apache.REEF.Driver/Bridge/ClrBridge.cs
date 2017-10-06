@@ -18,10 +18,12 @@
 using System;
 using Org.Apache.REEF.Bridge;
 using org.apache.reef.bridge.message;
-using Org.Apache.REEF.Wake.Avro;
-using Org.Apache.REEF.Utilities.Logging;
-using Org.Apache.REEF.Wake.Remote;
 using Org.Apache.REEF.Tang.Annotations;
+using Org.Apache.REEF.Tang.Implementations.Tang;
+using Org.Apache.REEF.Tang.Interface;
+using Org.Apache.REEF.Utilities.Logging;
+using Org.Apache.REEF.Wake.Avro;
+using Org.Apache.REEF.Wake.Remote;
 using System.Threading;
 
 namespace Org.Apache.REEF.Driver.Bridge
@@ -35,7 +37,7 @@ namespace Org.Apache.REEF.Driver.Bridge
     {
         private static readonly Logger Logger = Logger.GetLogger(typeof(ClrBridge));
         private static long identifierSource = 0;
-        private Network network;
+        private readonly Network network;
         internal DriverBridge driverBridge { get; set; }
 
         /// <summary>
@@ -46,6 +48,9 @@ namespace Org.Apache.REEF.Driver.Bridge
         [Inject]
         private ClrBridge(ILocalAddressProvider localAddressProvider)
         {
+            //// IConfiguration networkConfig = NetworkOptions.ModuleBuilder.Config
+            ////     .Set(NetworkOptions.ModuleBuilder.MessageObserver, this)
+            ////     .Build();
             this.network = new Network(localAddressProvider, this);
         }
 
@@ -55,14 +60,18 @@ namespace Org.Apache.REEF.Driver.Bridge
         /// </summary>
         public void OnNext(IMessageInstance<SystemOnStart> systemOnStart)
         {
-            Logger.Log(Level.Info, string.Format("*** SystemOnStart message received {0}", systemOnStart.Sequence));
+            Logger.Log(Level.Info, "SystemOnStart message received {0}", systemOnStart.Sequence);
 
-            DateTime startTime = DateTime.Now;
-            Logger.Log(Level.Info, "*** Start time is " + startTime);
+            // Convert Java time to C# time.
+            // Java - millisecs, C# - 100 nanosecs (muliply by 10000)
+            // Java - Jan 1, 1970, C# - Jan 1, 0001 (add 1969 years)
+            DateTime startTime = new DateTime(10000 * systemOnStart.Message.dateTime);
+            startTime = startTime.AddYears(1969);
+            Logger.Log(Level.Info, "Start time is {0}", startTime);
 
             driverBridge.StartHandlersOnNext(startTime);
             long identifier = Interlocked.Increment(ref identifierSource);
-            network.send(identifier, new Acknowledgement(systemOnStart.Sequence));
+            network.Send(identifier, new Acknowledgement(systemOnStart.Sequence));
         }
 
         /// <summary>
@@ -71,7 +80,7 @@ namespace Org.Apache.REEF.Driver.Bridge
         /// <param name="error">The exception generated in the transport layer.</param>
         public void OnError(Exception error)
         {
-            Logger.Log(Level.Info, "JavaCLRBridge error: [" + error.Message + "]");
+            Logger.Log(Level.Info, "ClrBridge error: [{0}]", error.Message);
         }
 
         /// <summary>
@@ -79,7 +88,7 @@ namespace Org.Apache.REEF.Driver.Bridge
         /// </summary
         public void OnCompleted()
         {
-            Logger.Log(Level.Info, "JavaCLRBridge OnCompleted");
+            Logger.Log(Level.Info, "ClrBridge OnCompleted");
         }
     }
 }

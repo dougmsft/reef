@@ -289,7 +289,7 @@ namespace Org.Apache.REEF.Driver.Bridge
                     ? 0
                     : int.Parse(httpServerPortNumber, CultureInfo.InvariantCulture);
 
-                _clrBridge = TangFactory.GetTang().NewInjector().GetInstance<ClrBridge>();
+                _clrBridge = injector.GetInstance<ClrBridge>();
                 _driverBridge = injector.GetInstance<DriverBridge>();
                 _clrBridge.driverBridge = _driverBridge;
             }
