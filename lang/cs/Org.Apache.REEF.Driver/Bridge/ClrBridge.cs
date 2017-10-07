@@ -19,11 +19,8 @@ using System;
 using Org.Apache.REEF.Bridge;
 using org.apache.reef.bridge.message;
 using Org.Apache.REEF.Tang.Annotations;
-using Org.Apache.REEF.Tang.Implementations.Tang;
-using Org.Apache.REEF.Tang.Interface;
 using Org.Apache.REEF.Utilities.Logging;
 using Org.Apache.REEF.Wake.Avro;
-using Org.Apache.REEF.Wake.Remote;
 using System.Threading;
 
 namespace Org.Apache.REEF.Driver.Bridge
@@ -41,23 +38,19 @@ namespace Org.Apache.REEF.Driver.Bridge
         internal DriverBridge driverBridge { get; set; }
 
         /// <summary>
-        /// Instantiate with 
+        /// Inject the Clr bridge with the network for communicating with the Java bridge.
         /// </summary>
-        /// <param name="localAddressProvider">An address provider that
-        /// will find an appropriate port for the CLR side of the bridge</param>
+        /// <param name="network">The Clr<->Java network to be used by the ClrBridge.</param>
         [Inject]
-        private ClrBridge(ILocalAddressProvider localAddressProvider)
+        private ClrBridge(Network network)
         {
-            //// IConfiguration networkConfig = NetworkOptions.ModuleBuilder.Config
-            ////     .Set(NetworkOptions.ModuleBuilder.MessageObserver, this)
-            ////     .Build();
-            this.network = new Network(localAddressProvider, this);
+            this.network = network;
         }
 
         /// <summary>
-        /// Callback to process the SystemOnStart message from the 
-        /// Java side of the bridge.
+        /// Callback to process the SystemOnStart message from the Java side of the bridge.
         /// </summary>
+        /// <param name="systemOnStart">Avro message from java indicating the system is starting.</param>
         public void OnNext(IMessageInstance<SystemOnStart> systemOnStart)
         {
             Logger.Log(Level.Info, "SystemOnStart message received {0}", systemOnStart.Sequence);

@@ -22,9 +22,7 @@ using System.Net;
 using org.apache.reef.bridge.message;
 using Org.Apache.REEF.Common.Files;
 using Org.Apache.REEF.Tang.Annotations;
-using Org.Apache.REEF.Tang.Formats;
 using Org.Apache.REEF.Tang.Implementations.Tang;
-using Org.Apache.REEF.Tang.Util;
 using Org.Apache.REEF.Utilities.Logging;
 using Org.Apache.REEF.Wake.Avro;
 using Org.Apache.REEF.Wake.Remote;
@@ -32,49 +30,34 @@ using Org.Apache.REEF.Wake.Remote.Impl;
 
 namespace Org.Apache.REEF.Bridge
 {
-    public sealed class NetworkOptions
-    {
-        [NamedParameter(Documentation = "Message observer bridge Avro messages")]
-        public class MessageObserver : Name<object>
-        {
-        }
-
-        public sealed class ModuleBuilder : ConfigurationModuleBuilder
-        {
-            public static readonly RequiredParameter<object> MessageObserver = new RequiredParameter<object>();
-
-            public static readonly ConfigurationModule Config = new ModuleBuilder()
-                .BindNamedParameter(GenericType<NetworkOptions.MessageObserver>.Class, MessageObserver)
-                .Build();
-        }
-    }
-
     /// <summary>
     /// The CLR Bridge Network class agregates a RemoteManager and
     /// Protocol Serializer to provide a simple send/receive interface
     /// between the CLR and Java bridges. 
     /// </summary>
+    [DefaultImplementation(typeof(Network), "Network")]
     public sealed class Network
     {
         private static readonly Logger Logger = Logger.GetLogger(typeof(Network));
-        private readonly ProtocolSerializer serializer =
-            new ProtocolSerializer(typeof(Network).Assembly, "org.apache.reef.bridge.message");
+        private readonly ProtocolSerializer serializer;
         private readonly BlockingCollection<byte[]> queue = new BlockingCollection<byte[]>();
         private readonly IRemoteManager<byte[]> remoteManager;
         private readonly IObserver<byte[]> remoteObserver;
-        private readonly LocalObserver localObserver;
 
         /// <summary>
-        /// Construct a network stack using the wate remote manager.
+        /// Construct a network stack using the wake remote manager.
         /// </summary>
         /// <param name="localAddressProvider">An address provider used to obtain a local IP address on an open port.</param>
-        /// <param name="messageObserver">Message receiver that implements IObserver interface for each message to be processed</param>
+        /// <param name="serializer"></param>
+        /// <param name="localObserver"></param>
         [Inject]
         public Network(
             ILocalAddressProvider localAddressProvider,
-            [Parameter(typeof(NetworkOptions.MessageObserver))] object messageObserver)
+            ProtocolSerializer serializer,
+            LocalObserver localObserver)
         {
-            this.localObserver = new LocalObserver(serializer, messageObserver);
+            this.serializer = serializer;
+            this.serializer.Initialize(typeof(Network).Assembly, "org.apache.reef.bridge.message");
 
             // Get the path to the bridge name server endpoint file.
             string javaBridgeAddress = GetJavaBridgeAddress();
@@ -109,52 +92,6 @@ namespace Org.Apache.REEF.Bridge
         {
             Logger.Log(Level.Info, "Sending message: {0}", message);
             remoteObserver.OnNext(serializer.Write(message, identifier));
-        }
-
-        /// <summary>
-        /// The Local Observer class receives byte buffer messages from the transport layer,
-        /// deserializes the messages into Avro C# classes, and invokes the appropriate
-        /// IObserver callback on the Avro message observer.
-        /// </summary>
-        private class LocalObserver : IObserver<IRemoteMessage<byte[]>>
-        {
-            private readonly ProtocolSerializer serializer;
-            private readonly object messageObserver;
-            [Inject]
-            public LocalObserver(ProtocolSerializer serializer, object messageObserver)
-            {
-                this.serializer = serializer;
-                this.messageObserver = messageObserver;
-            }
-
-            /// <summary>
-            /// Called by the remote manager to process messages received from the java bridge.
-            /// </summary>
-            /// <param name="message">A byte buffer containing a serialied message.</param>
-            public void OnNext(IRemoteMessage<byte[]> message)
-            {
-                Logger.Log(Level.Info, "Message received: {0}", message.Identifier);
-
-                // Deserialize the message and invoke the appropriate handler.
-                serializer.Read(message.Message, messageObserver);
-            }
-
-            /// <summary>
-            /// Handles error conditions in the low transport layer.
-            /// </summary>
-            /// <param name="error">The exception generated in the transport layer.</param>
-            public void OnError(Exception error)
-            {
-                Logger.Log(Level.Info, "Error: [{0}]", error.Message);
-            }
-
-            /// <summary>
-            /// Notification that no nore message prpocessing is required.
-            /// </summary>
-            public void OnCompleted()
-            {
-                Logger.Log(Level.Info, "Completed");
-            }
         }
 
         /// <summary>

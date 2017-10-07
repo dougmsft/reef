@@ -29,6 +29,9 @@ using Org.Apache.REEF.Utilities.Diagnostics;
 using Org.Apache.REEF.Utilities.Logging;
 using ContextMessage = Org.Apache.REEF.Driver.Bridge.Events.ContextMessage;
 using Org.Apache.REEF.Tang.Implementations.Tang;
+using Org.Apache.REEF.Tang.Interface;
+using Org.Apache.REEF.Bridge;
+using Org.Apache.REEF.Tang.Util;
 
 namespace Org.Apache.REEF.Driver.Bridge
 {
@@ -280,17 +283,21 @@ namespace Org.Apache.REEF.Driver.Bridge
 
         private static BridgeHandlerManager GetHandlers(string httpServerPortNumber, IEvaluatorRequestor evaluatorRequestor)
         {
-            var injector = BridgeConfigurationProvider.GetBridgeInjector(evaluatorRequestor);
-
             try
             {
-                var port = injector.GetInstance<HttpServerPort>();
+                ICsConfigurationBuilder clrConfigBuilder = TangFactory.GetTang().NewConfigurationBuilder();
+                clrConfigBuilder.BindNamedParameter<LocalObserverParameters.MessageObserver, ClrBridge, object>(
+                    GenericType<LocalObserverParameters.MessageObserver>.Class, impl: GenericType<ClrBridge>.Class);
+                IInjector clrBridgeInjector = TangFactory.GetTang().NewInjector(clrConfigBuilder.Build());
+                _clrBridge = clrBridgeInjector.GetInstance<ClrBridge>();
+
+                var driverBridgeInjector = BridgeConfigurationProvider.GetBridgeInjector(evaluatorRequestor);
+                var port = driverBridgeInjector.GetInstance<HttpServerPort>();
                 port.PortNumber = httpServerPortNumber == null
                     ? 0
                     : int.Parse(httpServerPortNumber, CultureInfo.InvariantCulture);
 
-                _clrBridge = injector.GetInstance<ClrBridge>();
-                _driverBridge = injector.GetInstance<DriverBridge>();
+                _driverBridge = driverBridgeInjector.GetInstance<DriverBridge>();
                 _clrBridge.driverBridge = _driverBridge;
             }
             catch (Exception e)

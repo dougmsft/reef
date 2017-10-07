@@ -22,6 +22,7 @@ using System.Reflection;
 using Microsoft.Hadoop.Avro;
 using Org.Apache.REEF.Utilities.Logging;
 using org.apache.reef.wake.avro.message;
+using Org.Apache.REEF.Tang.Annotations;
 
 namespace Org.Apache.REEF.Wake.Avro
 {
@@ -32,6 +33,7 @@ namespace Org.Apache.REEF.Wake.Avro
     /// Read/Write methods. A transport such as a RemoteObserver using a ByteCodec can then
     /// be used to send and receive the serialized messages.
     /// </summary>
+    [DefaultImplementation(typeof(ProtocolSerializer), "ProtocolSerializer")]
     public sealed class ProtocolSerializer
     {
         private static readonly Logger Logr = Logger.GetLogger(typeof(ProtocolSerializer));
@@ -68,11 +70,29 @@ namespace Org.Apache.REEF.Wake.Avro
             typeof(ProtocolSerializer).GetMethod("Register", BindingFlags.Instance | BindingFlags.NonPublic);
 
         /// <summary>
-        /// Register all of the protocol messages using reflection.
+        /// Construct an uninitialized protocol serializer.
+        /// </summary>
+        [Inject]
+        public ProtocolSerializer()
+        {
+        }
+
+        /// <summary>
+        /// Construct an initialized protocol serializer.
         /// </summary>
         /// <param name="assembly">The Assembly object which contains the namespace of the message classes.</param>
         /// <param name="messageNamespace">A string which contains the namespace the protocol messages.</param>
         public ProtocolSerializer(Assembly assembly, string messageNamespace)
+        {
+            Initialize(assembly, messageNamespace);
+        }
+
+        /// <summary>
+        /// Register all of the protocol messages using reflection.
+        /// </summary>
+        /// <param name="assembly">The Assembly object which contains the namespace of the message classes.</param>
+        /// <param name="messageNamespace">A string which contains the namespace the protocol messages.</param>
+        public void Initialize(Assembly assembly, string messageNamespace)
         {
             Logr.Log(Level.Verbose, "Retrieving types for assembly: {0}", assembly.FullName);
 

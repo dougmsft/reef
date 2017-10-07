@@ -53,6 +53,7 @@ under the License.
     <Compile Include="$(SolutionDir)\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
+    <Compile Include="LocalObserver.cs" />
     <Compile Include="Message\Acknowledgement.cs" />
     <Compile Include="Message\BridgeProtocol.cs" />
     <Compile Include="Message\SetupBridge.cs" />
