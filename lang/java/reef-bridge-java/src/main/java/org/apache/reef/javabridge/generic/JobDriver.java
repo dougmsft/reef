@@ -125,9 +125,8 @@ public final class JobDriver {
   private boolean isRestarted = false;
   // We are holding on to following on bridge side.
   // Need to add references here so that GC does not collect them.
-  private final HashMap<String, AllocatedEvaluatorBridge> allocatedEvaluatorBridges =
-      new HashMap<>();
   private EvaluatorRequestorBridge evaluatorRequestorBridge;
+  private final Map<String, AllocatedEvaluatorBridge> allocatedEvaluatorBridges = new HashMap<>();
   private JavaBridge bridge;
 
 
@@ -153,6 +152,7 @@ public final class JobDriver {
             final REEFFileNames reefFileNames,
             final AllocatedEvaluatorBridgeFactory allocatedEvaluatorBridgeFactory,
             final CLRProcessFactory clrProcessFactory,
+            final JavaBridge bridge,
             @Parameter(DefinedRuntimes.class) final Set<String> definedRuntimes) {
     this.clock = clock;
     this.httpServer = httpServer;
@@ -168,7 +168,7 @@ public final class JobDriver {
     this.localAddressProvider = localAddressProvider;
     this.clrProcessFactory = clrProcessFactory;
     this.definedRuntimes = definedRuntimes;
-    this.bridge = new JavaBridge(this.localAddressProvider);
+    this.bridge = bridge;
   }
 
   private void setupBridge() {
@@ -194,7 +194,8 @@ public final class JobDriver {
             out.write(localAddressProvider.getLocalAddress() + ":" + httpPortNumber + "\n");
           }
         } catch (IOException ex) {
-          throw new RuntimeException(ex);
+          throw new RuntimeException(
+              "Error writing HTTP endpoint to: " + reefFileNames.getDriverHttpEndpoint(), ex);
         }
       }
 
@@ -205,25 +206,26 @@ public final class JobDriver {
         final File outputFileName = new File(reefFileNames.getDriverJavaBridgeEndpoint());
         try(final BufferedWriter out = new BufferedWriter(
               new OutputStreamWriter(new FileOutputStream(outputFileName), StandardCharsets.UTF_8))) {
-          String address = localAddressProvider.getLocalAddress() + ":" + javaBridgePort;
+          final String address = localAddressProvider.getLocalAddress() + ":" + javaBridgePort;
           LOG.log(Level.INFO, "Java bridge address: " + address);
           out.write(address + "\n");
         }
       } catch (IOException ex) {
-        throw new RuntimeException(ex);
+        throw new RuntimeException(
+            "Error writing bridge endpoint to: " + reefFileNames.getDriverJavaBridgeEndpoint(), ex);
       }
 
-      this.evaluatorRequestorBridge =
-          new EvaluatorRequestorBridge(JobDriver.this.evaluatorRequestor, false, loggingScopeFactory,
-                  JobDriver.this.definedRuntimes);
-      JobDriver.this.handlerManager = new BridgeHandlerManager();
-      NativeInterop.clrSystemSetupBridgeHandlerManager(httpPortNumber,
-          JobDriver.this.handlerManager, evaluatorRequestorBridge);
+      this.evaluatorRequestorBridge = new EvaluatorRequestorBridge(
+          this.evaluatorRequestor, false, this.loggingScopeFactory, this.definedRuntimes);
+
+      this.handlerManager = new BridgeHandlerManager();
+      NativeInterop.clrSystemSetupBridgeHandlerManager(
+          httpPortNumber, this.handlerManager, this.evaluatorRequestorBridge);
 
       try (final LoggingScope lp =
                this.loggingScopeFactory.getNewLoggingScope("setupBridge::clrSystemHttpServerHandlerOnNext")) {
         final HttpServerEventBridge httpServerEventBridge = new HttpServerEventBridge("SPEC");
-        NativeInterop.clrSystemHttpServerHandlerOnNext(JobDriver.this.handlerManager.getHttpServerEventHandler(),
+        NativeInterop.clrSystemHttpServerHandlerOnNext(this.handlerManager.getHttpServerEventHandler(),
             httpServerEventBridge, this.interopLogger);
 
         final String specList = httpServerEventBridge.getUriSpecification();

@@ -24,38 +24,38 @@ import org.apache.reef.bridge.message.SystemOnStart;
 import org.apache.reef.util.MultiAsyncToSync;
 import org.apache.reef.util.exception.InvalidIdentifierException;
 import org.apache.reef.wake.impl.MultiObserverImpl;
-import org.apache.reef.wake.remote.address.LocalAddressProvider;
+import org.apache.reef.wake.time.runtime.Timer;
 
 import javax.inject.Inject;
 import java.net.InetSocketAddress;
-import java.util.Date;
-import java.util.concurrent.Callable;
 import java.util.concurrent.FutureTask;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static java.util.concurrent.TimeUnit.SECONDS;
-
 /**
  * Implements the Avro message protocol between the Java and C# bridges.
  */
-public final class JavaBridge extends MultiObserverImpl<JavaBridge> {
+public final class JavaBridge extends MultiObserverImpl {
+
   private static final Logger LOG = Logger.getLogger(JavaBridge.class.getName());
-  private static final int TIME_OUT = 20000;
-  private final MultiAsyncToSync blocker = new MultiAsyncToSync(TIME_OUT, SECONDS);
+
+  private final MultiAsyncToSync blocker = new MultiAsyncToSync(20, TimeUnit.SECONDS);
   private final AtomicLong idCounter = new AtomicLong(0);
   private final Network network;
+  private final Timer timer;
 
   /**
    * Inner class which sends its internal message when the call method is invoked.
    */
-  private class MessageSender implements Callable<Boolean> {
+  private class MessageSender implements Runnable {
+
     private final long identifier;
     private final SpecificRecord message;
 
     /**
-     * Intialize the Message Sender with the specified message sequence identifier
+     * Initialize the Message Sender with the specified message sequence identifier
      * and Avro message class.
      * @param identifier A long that contains the unique message sequence identifier.
      * @param message An Avro SpecifiedRecord instance whose subclass is an Avro
@@ -68,21 +68,20 @@ public final class JavaBridge extends MultiObserverImpl<JavaBridge> {
 
     /**
      * Sends the internal message with the internal message sequence identifier.
-     * @return Always returns true.
      */
-    public Boolean call() {
+    @Override
+    public void run() {
       network.send(identifier, message);
-      return true;
     }
   }
 
   /**
    * Implements the RPC interface to the C# side of the bridge.
-   * @param localAddressProvider Used to find an available port on the local host.
    */
   @Inject
-  public JavaBridge(final LocalAddressProvider localAddressProvider) {
-    this.network = new Network(localAddressProvider, this);
+  public JavaBridge(final Network network, final Timer timer) {
+    this.network = network;
+    this.timer = timer;
   }
 
   /**
@@ -92,22 +91,6 @@ public final class JavaBridge extends MultiObserverImpl<JavaBridge> {
    */
   public InetSocketAddress getAddress() {
     return network.getAddress();
-  }
-
-  /**
-   * Called when an error occurs in the MultiObserver base class.
-   * @param error An exception reference that contains the error
-   *              which occurred
-   */
-  public void onError(final Exception error) {
-    LOG.log(Level.SEVERE, "OnError: ", error.getMessage());
-  }
-
-  /**
-   * Called when no more message processing is required.
-   */
-  public void onCompleted() {
-    LOG.log(Level.INFO, "OnCompleted");
   }
 
   /**
@@ -138,9 +121,8 @@ public final class JavaBridge extends MultiObserverImpl<JavaBridge> {
    */
   public void callClrSystemOnStartHandler() throws InvalidIdentifierException, InterruptedException {
     LOG.log(Level.INFO, "callClrSystemOnStartHandler called");
-    final Date date = new Date();
     final long identifier = idCounter.getAndIncrement();
-    blocker.block(identifier, new FutureTask<>(new MessageSender(identifier, new SystemOnStart(date.getTime()))));
+    blocker.block(identifier, new FutureTask<>(
+        new MessageSender(identifier, new SystemOnStart(timer.getCurrent() / 1000)), null));
   }
 }
-
