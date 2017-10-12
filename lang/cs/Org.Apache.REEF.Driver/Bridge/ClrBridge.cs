@@ -73,7 +73,7 @@ namespace Org.Apache.REEF.Driver.Bridge
         /// <param name="error">The exception generated in the transport layer.</param>
         public void OnError(Exception error)
         {
-            Logger.Log(Level.Info, "ClrBridge error: [{0}]", error.Message);
+            Logger.Log(Level.Error, "ClrBridge error: ", error);
         }
 
         /// <summary>

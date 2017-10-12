@@ -30,8 +30,8 @@ using Org.Apache.REEF.Utilities.Logging;
 using ContextMessage = Org.Apache.REEF.Driver.Bridge.Events.ContextMessage;
 using Org.Apache.REEF.Tang.Implementations.Tang;
 using Org.Apache.REEF.Tang.Interface;
-using Org.Apache.REEF.Bridge;
 using Org.Apache.REEF.Tang.Util;
+using Org.Apache.REEF.Bridge;
 
 namespace Org.Apache.REEF.Driver.Bridge
 {
@@ -285,19 +285,23 @@ namespace Org.Apache.REEF.Driver.Bridge
         {
             try
             {
-                ICsConfigurationBuilder clrConfigBuilder = TangFactory.GetTang().NewConfigurationBuilder();
-                clrConfigBuilder.BindNamedParameter<LocalObserverParameters.MessageObserver, ClrBridge, object>(
-                    GenericType<LocalObserverParameters.MessageObserver>.Class, impl: GenericType<ClrBridge>.Class);
-                IInjector clrBridgeInjector = TangFactory.GetTang().NewInjector(clrConfigBuilder.Build());
-                _clrBridge = clrBridgeInjector.GetInstance<ClrBridge>();
+                IConfiguration clrConfig = TangFactory.GetTang().NewConfigurationBuilder()
+                    .BindStringNamedParam<ProtocolSerializerParameters.AssemblyName>(typeof(Network).Assembly.FullName)
+                    .BindStringNamedParam<ProtocolSerializerParameters.MessageNamespace>("org.apache.reef.bridge.message")
+                    .BindNamedParameter<LocalObserverParameters.MessageObserver, ClrBridge, object>(
+                        GenericType<LocalObserverParameters.MessageObserver>.Class, impl: GenericType<ClrBridge>.Class)
+                    .Build();
 
-                var driverBridgeInjector = BridgeConfigurationProvider.GetBridgeInjector(evaluatorRequestor);
+                var driverBridgeInjector =
+                    BridgeConfigurationProvider.GetBridgeInjector(evaluatorRequestor, clrConfig);
+
                 var port = driverBridgeInjector.GetInstance<HttpServerPort>();
                 port.PortNumber = httpServerPortNumber == null
                     ? 0
                     : int.Parse(httpServerPortNumber, CultureInfo.InvariantCulture);
 
                 _driverBridge = driverBridgeInjector.GetInstance<DriverBridge>();
+                _clrBridge = driverBridgeInjector.GetInstance<ClrBridge>();
                 _clrBridge.driverBridge = _driverBridge;
             }
             catch (Exception e)

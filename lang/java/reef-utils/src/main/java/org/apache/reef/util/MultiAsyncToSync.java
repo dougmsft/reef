@@ -104,6 +104,7 @@ public final class MultiAsyncToSync {
       // Put the caller to sleep until the ack comes back. Note: we atomically
       // give up the look as the caller sleeps and atomically reacquire the
       // the lock as we wake up.
+      // FIXME: Change to FINER
       LOG.log(Level.INFO, "Putting caller to sleep on identifier [{0}]", identifier);
       timeoutOccurred = !call.await();
       if (timeoutOccurred) {

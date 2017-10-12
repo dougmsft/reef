@@ -67,11 +67,13 @@ import java.util.logging.Logger;
 public final class JobDriver {
 
   private static final Logger LOG = Logger.getLogger(JobDriver.class.getName());
+
   /**
    * String codec is used to encode the results
    * before passing them back to the client.
    */
   private static final ObjectSerializableCodec<String> JVM_CODEC = new ObjectSerializableCodec<>();
+
   private final InteropLogger interopLogger = new InteropLogger();
   private final NameServer nameServer;
   private final String nameServerInfo;
@@ -152,7 +154,7 @@ public final class JobDriver {
             final REEFFileNames reefFileNames,
             final AllocatedEvaluatorBridgeFactory allocatedEvaluatorBridgeFactory,
             final CLRProcessFactory clrProcessFactory,
-            final JavaBridge bridge,
+            final JavaBridge javaBridge,
             @Parameter(DefinedRuntimes.class) final Set<String> definedRuntimes) {
     this.clock = clock;
     this.httpServer = httpServer;
@@ -168,7 +170,7 @@ public final class JobDriver {
     this.localAddressProvider = localAddressProvider;
     this.clrProcessFactory = clrProcessFactory;
     this.definedRuntimes = definedRuntimes;
-    this.bridge = bridge;
+    this.bridge = javaBridge;
   }
 
   private void setupBridge() {

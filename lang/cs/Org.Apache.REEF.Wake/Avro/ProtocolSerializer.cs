@@ -24,6 +24,19 @@ using Org.Apache.REEF.Utilities.Logging;
 using org.apache.reef.wake.avro.message;
 using Org.Apache.REEF.Tang.Annotations;
 
+public sealed class ProtocolSerializerParameters
+{
+    [NamedParameter(DefaultClass = typeof(string))]
+    public class AssemblyName : Name<string>
+    {
+    }
+
+    [NamedParameter(DefaultClass = typeof(string))]
+    public class MessageNamespace : Name<string>
+    {
+    }
+}
+
 namespace Org.Apache.REEF.Wake.Avro
 {
     /// <summary>
@@ -33,7 +46,6 @@ namespace Org.Apache.REEF.Wake.Avro
     /// Read/Write methods. A transport such as a RemoteObserver using a ByteCodec can then
     /// be used to send and receive the serialized messages.
     /// </summary>
-    [DefaultImplementation(typeof(ProtocolSerializer), "ProtocolSerializer")]
     public sealed class ProtocolSerializer
     {
         private static readonly Logger Logr = Logger.GetLogger(typeof(ProtocolSerializer));
@@ -70,31 +82,17 @@ namespace Org.Apache.REEF.Wake.Avro
             typeof(ProtocolSerializer).GetMethod("Register", BindingFlags.Instance | BindingFlags.NonPublic);
 
         /// <summary>
-        /// Construct an uninitialized protocol serializer.
-        /// </summary>
-        [Inject]
-        public ProtocolSerializer()
-        {
-        }
-
-        /// <summary>
         /// Construct an initialized protocol serializer.
         /// </summary>
-        /// <param name="assembly">The Assembly object which contains the namespace of the message classes.</param>
+        /// <param name="assemblyName">The full name of the assembly which contains the namespace of the message classes.</param>
         /// <param name="messageNamespace">A string which contains the namespace the protocol messages.</param>
-        public ProtocolSerializer(Assembly assembly, string messageNamespace)
+        [Inject]
+        public ProtocolSerializer(
+            [Parameter(typeof(ProtocolSerializerParameters.AssemblyName))] string assemblyName,
+            [Parameter(typeof(ProtocolSerializerParameters.MessageNamespace))] string messageNamespace)
         {
-            Initialize(assembly, messageNamespace);
-        }
-
-        /// <summary>
-        /// Register all of the protocol messages using reflection.
-        /// </summary>
-        /// <param name="assembly">The Assembly object which contains the namespace of the message classes.</param>
-        /// <param name="messageNamespace">A string which contains the namespace the protocol messages.</param>
-        public void Initialize(Assembly assembly, string messageNamespace)
-        {
-            Logr.Log(Level.Verbose, "Retrieving types for assembly: {0}", assembly.FullName);
+            Logr.Log(Level.Verbose, "Retrieving types for assembly: {0}", assemblyName);
+            Assembly assembly = Assembly.Load(assemblyName);
 
             var types = new List<Type>(assembly.GetTypes()) { typeof(Header) };
             foreach (Type type in types)

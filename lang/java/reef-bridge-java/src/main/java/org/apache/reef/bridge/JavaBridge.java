@@ -94,6 +94,22 @@ public final class JavaBridge extends MultiObserverImpl {
   }
 
   /**
+   * Called when an error occurs in the MultiObserver base class.
+   * @param error An exception reference that contains the error
+   *              which occurred
+   */
+  public void onError(final Exception error) {
+    LOG.log(Level.SEVERE, "Error received by Java bridge: ", error);
+  }
+
+  /**
+   * Called when no more message processing is required.
+   */
+  public void onCompleted() {
+    LOG.log(Level.INFO, "OnCompleted");
+  }
+
+  /**
    * Processes protocol messages from the C# side of the bridge.
    * @param identifier A long value which is the unique message identifier.
    * @param protocol A reference to the received Avro protocol message.

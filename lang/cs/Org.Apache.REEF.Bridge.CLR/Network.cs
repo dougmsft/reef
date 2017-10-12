@@ -57,7 +57,6 @@ namespace Org.Apache.REEF.Bridge
             LocalObserver localObserver)
         {
             this.serializer = serializer;
-            this.serializer.Initialize(typeof(Network).Assembly, "org.apache.reef.bridge.message");
 
             // Get the path to the bridge name server endpoint file.
             string javaBridgeAddress = GetJavaBridgeAddress();
