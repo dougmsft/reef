@@ -100,7 +100,7 @@ public final class JavaBridge extends MultiObserverImpl<JavaBridge> {
    *              which occurred
    */
   public void onError(final Exception error) {
-    LOG.log(Level.SEVERE, "OnError: ", error.getMessage());
+    LOG.log(Level.SEVERE, "Error received by Java bridge: ", error);
   }
 
   /**

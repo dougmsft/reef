@@ -81,7 +81,7 @@ public sealed class LocalObserver : IObserver<IRemoteMessage<byte[]>>
     /// <param name="error">The exception generated in the transport layer.</param>
     public void OnError(Exception error)
     {
-        Logger.Log(Level.Info, "Error: [{0}]", error.Message);
+        Logger.Log(Level.Error, "Error: ", error);
     }
 
     /// <summary>

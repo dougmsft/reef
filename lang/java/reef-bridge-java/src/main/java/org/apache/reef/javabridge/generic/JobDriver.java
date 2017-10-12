@@ -153,6 +153,7 @@ public final class JobDriver {
             final REEFFileNames reefFileNames,
             final AllocatedEvaluatorBridgeFactory allocatedEvaluatorBridgeFactory,
             final CLRProcessFactory clrProcessFactory,
+            final JavaBridge javaBridge,
             @Parameter(DefinedRuntimes.class) final Set<String> definedRuntimes) {
     this.clock = clock;
     this.httpServer = httpServer;
@@ -168,7 +169,7 @@ public final class JobDriver {
     this.localAddressProvider = localAddressProvider;
     this.clrProcessFactory = clrProcessFactory;
     this.definedRuntimes = definedRuntimes;
-    this.bridge = new JavaBridge(this.localAddressProvider);
+    this.bridge = javaBridge;
   }
 
   private void setupBridge() {
