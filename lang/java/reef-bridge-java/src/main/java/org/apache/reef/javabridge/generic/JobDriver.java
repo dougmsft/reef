@@ -187,6 +187,7 @@ public final class JobDriver {
       }
 
       // Write the webserver ip address and port number to a file for the C# side.
+      LOG.log(Level.INFO, "Write HTTP endpoint to: {0}", reefFileNames.getDriverHttpEndpoint());
       final String httpPortNumber = httpServer == null ? null : Integer.toString(httpServer.getPort());
       if (httpPortNumber != null) {
         try {
@@ -202,16 +203,21 @@ public final class JobDriver {
       }
 
       // Write the java bridge ip address and port number to a file for the C# side.
-      final InetSocketAddress javaBridgeAddress = bridge.getAddress();
-      final String javaBridgePort = Integer.toString(javaBridgeAddress.getPort());
+      LOG.log(Level.INFO, "Write java bridge endpoint to: {0}", reefFileNames.getDriverJavaBridgeEndpoint());
       try {
+        final InetSocketAddress javaBridgeAddress = bridge.getAddress();
+        final String javaBridgePort = Integer.toString(javaBridgeAddress.getPort());
+
+        final String address = localAddressProvider.getLocalAddress() + ":" + javaBridgePort;
         final File outputFileName = new File(reefFileNames.getDriverJavaBridgeEndpoint());
-        try(final BufferedWriter out = new BufferedWriter(
+
+        try (final BufferedWriter out = new BufferedWriter(
               new OutputStreamWriter(new FileOutputStream(outputFileName), StandardCharsets.UTF_8))) {
-          final String address = localAddressProvider.getLocalAddress() + ":" + javaBridgePort;
-          LOG.log(Level.INFO, "Java bridge address: {0}", address);
           out.write(address + "\n");
         }
+
+        LOG.log(Level.INFO, "Java bridge address: {0}", address);
+
       } catch (IOException ex) {
         throw new RuntimeException(
             "Error writing bridge endpoint to: " + reefFileNames.getDriverJavaBridgeEndpoint(), ex);
