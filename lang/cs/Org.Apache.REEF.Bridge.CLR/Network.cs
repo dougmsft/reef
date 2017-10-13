@@ -43,6 +43,7 @@ namespace Org.Apache.REEF.Bridge
         private readonly BlockingCollection<byte[]> queue = new BlockingCollection<byte[]>();
         private readonly IRemoteManager<byte[]> remoteManager;
         private readonly IObserver<byte[]> remoteObserver;
+        private readonly REEFFileNames fileNames;
 
         /// <summary>
         /// Construct a network stack using the wake remote manager.
@@ -54,16 +55,17 @@ namespace Org.Apache.REEF.Bridge
         public Network(
             ILocalAddressProvider localAddressProvider,
             ProtocolSerializer serializer,
-            LocalObserver localObserver)
+            LocalObserver localObserver,
+            IRemoteManagerFactory remoteManagerFactory,
+            REEFFileNames fileNames)
         {
             this.serializer = serializer;
+            this.fileNames = fileNames;
 
             // Get the path to the bridge name server endpoint file.
             string javaBridgeAddress = GetJavaBridgeAddress();
 
             // Instantiate the remote manager.
-            IRemoteManagerFactory remoteManagerFactory =
-                TangFactory.GetTang().NewInjector().GetInstance<IRemoteManagerFactory>();
             remoteManager = remoteManagerFactory.GetInstance(localAddressProvider.LocalAddress, new ByteCodec());
 
             // Listen to the java bridge on the local end point.
@@ -99,17 +101,15 @@ namespace Org.Apache.REEF.Bridge
         /// <returns>A string containing the IP address and port of the Java bridge.</returns>
         private string GetJavaBridgeAddress()
         {
-            string javaBridgeAddress = null;
-            REEFFileNames fileNames = TangFactory.GetTang().NewInjector().GetInstance<REEFFileNames>();
             using (FileStream stream = File.Open(fileNames.GetDriverJavaBridgeEndpoint(), FileMode.Open))
             {
                 using (StreamReader reader = new StreamReader(stream))
                 {
-                    javaBridgeAddress = reader.ReadToEnd();
+                    string javaBridgeAddress = reader.ReadToEnd();
+                    Logger.Log(Level.Info, "Name Server Address: {0}", javaBridgeAddress);
+                    return javaBridgeAddress;
                 }
             }
-            Logger.Log(Level.Info, "Name Server Address: {0}", javaBridgeAddress);
-            return javaBridgeAddress;
         }
     }
 }
