@@ -38,6 +38,7 @@ import org.apache.reef.runtime.yarn.driver.parameters.FileSystemUrl;
 import org.apache.reef.runtime.yarn.driver.parameters.JobSubmissionDirectoryPrefix;
 import org.apache.reef.tang.*;
 import org.apache.reef.tang.formats.ConfigurationSerializer;
+import org.apache.reef.wake.avro.ProtocolSerializerNamespace;
 import org.apache.reef.wake.remote.ports.parameters.TcpPortRangeBegin;
 import org.apache.reef.wake.remote.ports.parameters.TcpPortRangeCount;
 import org.apache.reef.wake.remote.ports.parameters.TcpPortRangeTryCount;
@@ -92,6 +93,7 @@ final class YarnBootstrapDriverConfigGenerator {
 
     final AvroJobSubmissionParameters jobSubmissionParameters =
         yarnJobSubmissionParams.getSharedJobSubmissionParameters();
+
     final Configuration yarnDriverConfiguration = YarnDriverConfiguration.CONF
         .set(YarnDriverConfiguration.JOB_SUBMISSION_DIRECTORY,
             yarnJobSubmissionParams.getDfsJobSubmissionFolder().toString())
@@ -110,8 +112,8 @@ final class YarnBootstrapDriverConfigGenerator {
         .bindNamedParameter(TcpPortRangeTryCount.class, Integer.toString(appSubmissionParams.getTcpTryCount()))
         .bindNamedParameter(JobSubmissionDirectoryPrefix.class,
             yarnJobSubmissionParams.getJobSubmissionDirectoryPrefix().toString())
-        .bindNamedParameter(FileSystemUrl.class,
-            yarnJobSubmissionParams.getFileSystemUrl().toString())
+        .bindNamedParameter(FileSystemUrl.class, yarnJobSubmissionParams.getFileSystemUrl().toString())
+        .bindNamedParameter(ProtocolSerializerNamespace.class, "org.apache.reef.bridge.message")
         .build();
 
     final Configuration driverConfiguration = Configurations.merge(

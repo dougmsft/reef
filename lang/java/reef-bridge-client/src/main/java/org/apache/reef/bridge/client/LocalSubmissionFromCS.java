@@ -35,6 +35,7 @@ import org.apache.reef.runtime.yarn.driver.parameters.JobSubmissionDirectory;
 import org.apache.reef.tang.Configuration;
 import org.apache.reef.tang.Configurations;
 import org.apache.reef.tang.Tang;
+import org.apache.reef.wake.avro.ProtocolSerializerNamespace;
 import org.apache.reef.wake.remote.address.LoopbackLocalAddressProvider;
 import org.apache.reef.wake.remote.ports.parameters.TcpPortRangeBegin;
 import org.apache.reef.wake.remote.ports.parameters.TcpPortRangeCount;
@@ -115,6 +116,7 @@ final class LocalSubmissionFromCS {
         .bindNamedParameter(TcpPortRangeTryCount.class, Integer.toString(tcpTryCount))
         .bindNamedParameter(JobSubmissionDirectory.class, runtimeRootFolder.getAbsolutePath())
         .bindList(DriverLaunchCommandPrefix.class, driverLaunchCommandPrefixList)
+        .bindNamedParameter(ProtocolSerializerNamespace.class, "org.apache.reef.bridge.message")
         .build();
 
     return Configurations.merge(runtimeConfiguration, userProviderConfiguration);
