@@ -202,14 +202,14 @@ public final class JobDriver {
       }
 
       // Write the java bridge ip address and port number to a file for the C# side.
-      InetSocketAddress javaBridgeAddress = bridge.getAddress();
+      final InetSocketAddress javaBridgeAddress = bridge.getAddress();
       final String javaBridgePort = Integer.toString(javaBridgeAddress.getPort());
       try {
         final File outputFileName = new File(reefFileNames.getDriverJavaBridgeEndpoint());
         try(final BufferedWriter out = new BufferedWriter(
               new OutputStreamWriter(new FileOutputStream(outputFileName), StandardCharsets.UTF_8))) {
           final String address = localAddressProvider.getLocalAddress() + ":" + javaBridgePort;
-          LOG.log(Level.INFO, "Java bridge address: " + address);
+          LOG.log(Level.INFO, "Java bridge address: {0}", address);
           out.write(address + "\n");
         }
       } catch (IOException ex) {
