@@ -18,6 +18,7 @@
  */
 package org.apache.reef.bridge.client;
 
+import org.apache.reef.bridge.JavaBridge;
 import org.apache.reef.client.DriverConfiguration;
 import org.apache.reef.client.DriverServiceConfiguration;
 import org.apache.reef.client.DriverRestartConfiguration;
@@ -26,6 +27,7 @@ import org.apache.reef.javabridge.generic.JobDriver;
 import org.apache.reef.tang.Configuration;
 import org.apache.reef.tang.Configurations;
 import org.apache.reef.tang.Tang;
+import org.apache.reef.wake.MultiObserver;
 import org.apache.reef.wake.avro.ProtocolSerializerNamespace;
 import org.apache.reef.webserver.HttpHandlerConfiguration;
 import org.apache.reef.webserver.HttpServerReefEventHandler;
@@ -58,6 +60,7 @@ public final class Constants {
 
   private static final Configuration BRIDGE_CONFIGURATION = Tang.Factory.getTang().newConfigurationBuilder()
       .bindNamedParameter(ProtocolSerializerNamespace.class, "org.apache.reef.bridge.message")
+      .bindImplementation(MultiObserver.class, JavaBridge.class)
       .build();
 
   /**

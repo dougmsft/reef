@@ -21,6 +21,7 @@ package org.apache.reef.bridge.client;
 import org.apache.avro.io.DecoderFactory;
 import org.apache.avro.io.JsonDecoder;
 import org.apache.avro.specific.SpecificDatumReader;
+import org.apache.reef.bridge.JavaBridge;
 import org.apache.reef.client.DriverRestartConfiguration;
 import org.apache.reef.client.parameters.DriverConfigurationProviders;
 import org.apache.reef.io.TcpPortConfigurationProvider;
@@ -38,6 +39,7 @@ import org.apache.reef.runtime.yarn.driver.parameters.FileSystemUrl;
 import org.apache.reef.runtime.yarn.driver.parameters.JobSubmissionDirectoryPrefix;
 import org.apache.reef.tang.*;
 import org.apache.reef.tang.formats.ConfigurationSerializer;
+import org.apache.reef.wake.MultiObserver;
 import org.apache.reef.wake.avro.ProtocolSerializerNamespace;
 import org.apache.reef.wake.remote.ports.parameters.TcpPortRangeBegin;
 import org.apache.reef.wake.remote.ports.parameters.TcpPortRangeCount;
@@ -114,6 +116,7 @@ final class YarnBootstrapDriverConfigGenerator {
             yarnJobSubmissionParams.getJobSubmissionDirectoryPrefix().toString())
         .bindNamedParameter(FileSystemUrl.class, yarnJobSubmissionParams.getFileSystemUrl().toString())
         .bindNamedParameter(ProtocolSerializerNamespace.class, "org.apache.reef.bridge.message")
+        .bindImplementation(MultiObserver.class, JavaBridge.class)
         .build();
 
     final Configuration driverConfiguration = Configurations.merge(

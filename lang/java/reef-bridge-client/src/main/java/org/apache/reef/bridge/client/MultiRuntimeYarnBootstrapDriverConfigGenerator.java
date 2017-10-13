@@ -20,6 +20,7 @@ package org.apache.reef.bridge.client;
 
 import org.apache.hadoop.yarn.conf.YarnConfiguration;
 import org.apache.reef.annotations.audience.DriverSide;
+import org.apache.reef.bridge.JavaBridge;
 import org.apache.reef.client.DriverRestartConfiguration;
 import org.apache.reef.client.parameters.DriverConfigurationProviders;
 import org.apache.reef.io.TcpPortConfigurationProvider;
@@ -41,6 +42,7 @@ import org.apache.reef.tang.Configurations;
 import org.apache.reef.tang.Tang;
 import org.apache.reef.tang.formats.ConfigurationModule;
 import org.apache.reef.tang.formats.ConfigurationSerializer;
+import org.apache.reef.wake.MultiObserver;
 import org.apache.reef.wake.avro.ProtocolSerializerNamespace;
 import org.apache.reef.wake.remote.ports.parameters.TcpPortRangeBegin;
 import org.apache.reef.wake.remote.ports.parameters.TcpPortRangeCount;
@@ -223,6 +225,7 @@ final class MultiRuntimeYarnBootstrapDriverConfigGenerator {
             .bindImplementation(RuntimeClasspathProvider.class, YarnClasspathProvider.class)
             .bindConstructor(YarnConfiguration.class, YarnConfigurationConstructor.class)
             .bindNamedParameter(ProtocolSerializerNamespace.class, "org.apache.reef.bridge.message")
+            .bindImplementation(MultiObserver.class, JavaBridge.class)
             .build();
 
     final Configuration driverConfiguration = Configurations.merge(

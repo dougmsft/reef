@@ -18,6 +18,7 @@
  */
 package org.apache.reef.javabridge.generic;
 
+import org.apache.reef.bridge.JavaBridge;
 import org.apache.reef.client.*;
 import org.apache.reef.io.network.naming.NameServerConfiguration;
 import org.apache.reef.javabridge.NativeInterop;
@@ -32,6 +33,7 @@ import org.apache.reef.util.EnvironmentUtils;
 import org.apache.reef.util.logging.LoggingScope;
 import org.apache.reef.util.logging.LoggingScopeFactory;
 import org.apache.reef.wake.EventHandler;
+import org.apache.reef.wake.MultiObserver;
 import org.apache.reef.wake.avro.ProtocolSerializerNamespace;
 import org.apache.reef.webserver.HttpHandlerConfiguration;
 import org.apache.reef.webserver.HttpServerReefEventHandler;
@@ -145,6 +147,7 @@ public final class JobClient {
 
     final Configuration bridgeConfig = Tang.Factory.getTang().newConfigurationBuilder()
         .bindNamedParameter(ProtocolSerializerNamespace.class, "org.apache.reef.bridge.message")
+        .bindImplementation(MultiObserver.class, JavaBridge.class)
         .build();
 
     ConfigurationModule driverConfigModule = DriverConfiguration.CONF
