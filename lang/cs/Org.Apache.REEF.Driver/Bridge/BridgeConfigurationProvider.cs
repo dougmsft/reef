@@ -140,19 +140,19 @@ namespace Org.Apache.REEF.Driver.Bridge
         /// Instantiates an IInjector using the bridge configuration.
         /// </summary>
         /// <returns></returns>
-        internal static IInjector GetBridgeInjector(IEvaluatorRequestor evaluatorRequestor, params IConfiguration[] otherConfigs)
+        internal static IInjector GetBridgeInjector(
+            IEvaluatorRequestor evaluatorRequestor, params IConfiguration[] otherConfigs)
         {
             lock (LockObject)
             {
                 if (bridgeInjector == null)
                 {
-                    IConfiguration config = Configurations.Merge(
+                    bridgeInjector = TangFactory.GetTang().NewInjector(
                         Configurations.Merge(otherConfigs), GetBridgeConfiguration());
 
-                    bridgeInjector = TangFactory.GetTang().NewInjector(config);
                     if (evaluatorRequestor != null)
                     {
-                        bridgeInjector.BindVolatileInstance(GenericType<IEvaluatorRequestor>.Class, evaluatorRequestor);
+                        bridgeInjector.BindVolatileInstance(evaluatorRequestor);
                     }
                 }
 

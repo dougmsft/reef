@@ -32,6 +32,7 @@ using Org.Apache.REEF.Tang.Implementations.Tang;
 using Org.Apache.REEF.Tang.Interface;
 using Org.Apache.REEF.Tang.Util;
 using Org.Apache.REEF.Bridge;
+using Org.Apache.REEF.Wake.Avro;
 
 namespace Org.Apache.REEF.Driver.Bridge
 {
@@ -286,10 +287,8 @@ namespace Org.Apache.REEF.Driver.Bridge
             try
             {
                 IConfiguration clrConfig = TangFactory.GetTang().NewConfigurationBuilder()
-                    .BindStringNamedParam<ProtocolSerializerParameters.AssemblyName>(typeof(Network).Assembly.FullName)
-                    .BindStringNamedParam<ProtocolSerializerParameters.MessageNamespace>("org.apache.reef.bridge.message")
-                    .BindNamedParameter<LocalObserverParameters.MessageObserver, ClrBridge, object>(
-                        GenericType<LocalObserverParameters.MessageObserver>.Class, impl: GenericType<ClrBridge>.Class)
+                    .BindStringNamedParam<ProtocolSerializer.AssemblyName>(typeof(Network).Assembly.FullName)
+                    .BindStringNamedParam<ProtocolSerializer.MessageNamespace>("org.apache.reef.bridge.message")
                     .Build();
 
                 var driverBridgeInjector =

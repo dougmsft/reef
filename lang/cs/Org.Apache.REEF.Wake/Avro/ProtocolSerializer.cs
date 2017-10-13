@@ -24,19 +24,6 @@ using Org.Apache.REEF.Utilities.Logging;
 using org.apache.reef.wake.avro.message;
 using Org.Apache.REEF.Tang.Annotations;
 
-public sealed class ProtocolSerializerParameters
-{
-    [NamedParameter(DefaultClass = typeof(string))]
-    public class AssemblyName : Name<string>
-    {
-    }
-
-    [NamedParameter(DefaultClass = typeof(string))]
-    public class MessageNamespace : Name<string>
-    {
-    }
-}
-
 namespace Org.Apache.REEF.Wake.Avro
 {
     /// <summary>
@@ -48,6 +35,16 @@ namespace Org.Apache.REEF.Wake.Avro
     /// </summary>
     public sealed class ProtocolSerializer
     {
+        [NamedParameter("Name of the assembly that contains serializable classes.")]
+        public class AssemblyName : Name<string>
+        {
+        }
+
+        [NamedParameter("Package name to search for serializabe classes.")]
+        public class MessageNamespace : Name<string>
+        {
+        }
+
         private static readonly Logger Logr = Logger.GetLogger(typeof(ProtocolSerializer));
 
         /// <summary>
@@ -88,8 +85,8 @@ namespace Org.Apache.REEF.Wake.Avro
         /// <param name="messageNamespace">A string which contains the namespace the protocol messages.</param>
         [Inject]
         public ProtocolSerializer(
-            [Parameter(typeof(ProtocolSerializerParameters.AssemblyName))] string assemblyName,
-            [Parameter(typeof(ProtocolSerializerParameters.MessageNamespace))] string messageNamespace)
+            [Parameter(typeof(AssemblyName))] string assemblyName,
+            [Parameter(typeof(MessageNamespace))] string messageNamespace)
         {
             Logr.Log(Level.Verbose, "Retrieving types for assembly: {0}", assemblyName);
             Assembly assembly = Assembly.Load(assemblyName);
