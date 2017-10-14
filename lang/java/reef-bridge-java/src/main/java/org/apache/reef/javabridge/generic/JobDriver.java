@@ -36,6 +36,7 @@ import org.apache.reef.runtime.common.files.REEFFileNames;
 import org.apache.reef.tang.annotations.Parameter;
 import org.apache.reef.tang.annotations.Unit;
 import org.apache.reef.util.Optional;
+import org.apache.reef.util.exception.InvalidIdentifierException;
 import org.apache.reef.util.logging.CLRBufferedLogHandler;
 import org.apache.reef.util.logging.LoggingScope;
 import org.apache.reef.util.logging.LoggingScopeFactory;
@@ -129,7 +130,7 @@ public final class JobDriver {
   // Need to add references here so that GC does not collect them.
   private EvaluatorRequestorBridge evaluatorRequestorBridge;
   private final Map<String, AllocatedEvaluatorBridge> allocatedEvaluatorBridges = new HashMap<>();
-  private JavaBridge bridge;
+  private final JavaBridge bridge;
 
 
   /**
@@ -623,8 +624,9 @@ public final class JobDriver {
 
         try {
           bridge.callClrSystemOnStartHandler();
-        } catch (Exception e) {
-          throw new RuntimeException(e);
+        } catch (final InvalidIdentifierException | InterruptedException e) {
+          LOG.log(Level.SEVERE, "CLR bridge error", e);
+          throw new RuntimeException("CLR bridge error", e);
         }
         LOG.log(Level.INFO, "Driver Started");
       }
