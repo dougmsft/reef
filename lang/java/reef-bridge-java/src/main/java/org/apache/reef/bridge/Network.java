@@ -19,6 +19,7 @@
 package org.apache.reef.bridge;
 
 import org.apache.avro.specific.SpecificRecord;
+import org.apache.reef.tang.InjectionFuture;
 import org.apache.reef.wake.EventHandler;
 import org.apache.reef.wake.MultiObserver;
 import org.apache.reef.wake.avro.ProtocolSerializer;
@@ -47,7 +48,7 @@ public final class Network {
 
   private final ProtocolSerializer serializer;
   private final InetSocketAddress inetSocketAddress;
-  private final MultiObserver messageObserver;
+  private final InjectionFuture<MultiObserver> messageObserver;
 
   private EventHandler<byte[]> sender;
 
@@ -59,7 +60,7 @@ public final class Network {
   public Network(
       final RemoteManagerFactory remoteManagerFactory,
       final ProtocolSerializer serializer,
-      final MultiObserver observer) {
+      final InjectionFuture<MultiObserver> observer) {
 
     LOG.log(Level.INFO, "Initializing");
 
@@ -125,7 +126,7 @@ public final class Network {
       }
 
       // Deserialize the message and invoke the appropriate processing method.
-      serializer.read(message.getMessage(), messageObserver);
+      serializer.read(message.getMessage(), messageObserver.get());
     }
   }
 }
