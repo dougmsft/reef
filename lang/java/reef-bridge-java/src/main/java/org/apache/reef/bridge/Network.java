@@ -101,7 +101,7 @@ public final class Network {
       sender.onNext(serializer.write(message, identifier));
     } else {
       LOG.log(Level.SEVERE,
-          "Attempt to send message [{0}] before network is initialized", message.getClass().getName());
+          "Attempt to send message [{0}] before network is initialized", message.getClass().getCanonicalName());
     }
   }
 

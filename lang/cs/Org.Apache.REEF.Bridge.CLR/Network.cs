@@ -34,7 +34,6 @@ namespace Org.Apache.REEF.Bridge
     /// Protocol Serializer to provide a simple send/receive interface
     /// between the CLR and Java bridges. 
     /// </summary>
-    [DefaultImplementation(typeof(Network), "Network")]
     public sealed class Network
     {
         private static readonly Logger Logger = Logger.GetLogger(typeof(Network));
