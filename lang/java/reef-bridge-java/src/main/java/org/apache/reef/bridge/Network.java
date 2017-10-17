@@ -20,14 +20,19 @@ package org.apache.reef.bridge;
 
 import org.apache.avro.specific.SpecificRecord;
 import org.apache.reef.tang.InjectionFuture;
+import org.apache.reef.tang.exceptions.InjectionException;
 import org.apache.reef.wake.EventHandler;
 import org.apache.reef.wake.MultiObserver;
 import org.apache.reef.wake.avro.ProtocolSerializer;
+import org.apache.reef.wake.impl.LoggingEventHandler;
 import org.apache.reef.wake.remote.RemoteMessage;
+import org.apache.reef.wake.remote.address.LocalAddressProvider;
+import org.apache.reef.wake.remote.impl.ByteCodec;
 import org.apache.reef.wake.remote.impl.SocketRemoteIdentifier;
 import org.apache.reef.wake.remote.RemoteIdentifier;
 import org.apache.reef.wake.remote.RemoteManager;
 import org.apache.reef.wake.remote.RemoteManagerFactory;
+import org.apache.reef.wake.remote.ports.TcpPortProvider;
 
 import javax.inject.Inject;
 import java.net.InetSocketAddress;
@@ -58,13 +63,19 @@ public final class Network {
    */
   @Inject
   public Network(
-      final RemoteManagerFactory remoteManagerFactory,
-      final ProtocolSerializer serializer,
-      final InjectionFuture<MultiObserver> observer) {
+    final RemoteManagerFactory remoteManagerFactory,
+    final LocalAddressProvider localAddressProvider,
+    final ProtocolSerializer serializer,
+    final TcpPortProvider tcpPortProvider,
+    final LoggingEventHandler<Throwable> loggingEventHandler,
+    final InjectionFuture<MultiObserver> observer) {
 
-    LOG.log(Level.INFO, "Initializing");
+    LOG.log(Level.INFO, "Java bridge network nitializing");
 
-    this.remoteManager = remoteManagerFactory.getInstance("JavaBridgeNetwork");
+    this.remoteManager = remoteManagerFactory.getInstance("JavaBridgeNetwork",
+      localAddressProvider.getLocalAddress(), 0, new ByteCodec(),
+      loggingEventHandler, true, 3, 10000,
+      localAddressProvider, tcpPortProvider);
     this.serializer = serializer;
     this.messageObserver = observer;
 

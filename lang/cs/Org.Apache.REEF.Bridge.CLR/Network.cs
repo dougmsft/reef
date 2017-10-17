@@ -76,8 +76,8 @@ namespace Org.Apache.REEF.Bridge
             IPAddress javaBridgeIpAddress = IPAddress.Parse(javaAddressStrs[0]);
             int port = int.Parse(javaAddressStrs[1]);
             IPEndPoint javaIpEndPoint = new IPEndPoint(javaBridgeIpAddress, port);
-            remoteObserver = remoteManager.GetRemoteObserver(javaIpEndPoint);
             Logger.Log(Level.Info, "Connecting to java bridge on: [{0}]", javaIpEndPoint);
+            remoteObserver = remoteManager.GetRemoteObserver(javaIpEndPoint);
 
             // Negotiate the protocol.
             Send(0, new BridgeProtocol(100));
@@ -105,7 +105,7 @@ namespace Org.Apache.REEF.Bridge
                 using (StreamReader reader = new StreamReader(stream))
                 {
                     string javaBridgeAddress = reader.ReadToEnd();
-                    Logger.Log(Level.Info, "Name Server Address: {0}", javaBridgeAddress);
+                    Logger.Log(Level.Info, "Java bridge address: {0}", javaBridgeAddress);
                     return javaBridgeAddress;
                 }
             }
