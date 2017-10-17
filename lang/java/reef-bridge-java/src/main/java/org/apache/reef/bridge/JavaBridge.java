@@ -17,7 +17,6 @@
  */
 package org.apache.reef.bridge;
 
-import org.apache.avro.specific.SpecificRecord;
 import org.apache.reef.bridge.message.Acknowledgement;
 import org.apache.reef.bridge.message.BridgeProtocol;
 import org.apache.reef.bridge.message.SystemOnStart;
@@ -28,7 +27,6 @@ import org.apache.reef.wake.time.runtime.Timer;
 
 import javax.inject.Inject;
 import java.net.InetSocketAddress;
-import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
@@ -45,35 +43,6 @@ public final class JavaBridge extends MultiObserverImpl {
   private final AtomicLong idCounter = new AtomicLong(0);
   private final Network network;
   private final Timer timer;
-
-  /**
-   * Inner class which sends its internal message when the call method is invoked.
-   */
-  private class MessageSender implements Runnable {
-
-    private final long identifier;
-    private final SpecificRecord message;
-
-    /**
-     * Initialize the Message Sender with the specified message sequence identifier
-     * and Avro message class.
-     * @param identifier A long that contains the unique message sequence identifier.
-     * @param message An Avro SpecifiedRecord instance whose subclass is an Avro
-     *                message in the bridge protocol.
-     */
-    MessageSender(final long identifier, final SpecificRecord message) {
-      this.identifier = identifier;
-      this.message = message;
-    }
-
-    /**
-     * Sends the internal message with the internal message sequence identifier.
-     */
-    @Override
-    public void run() {
-      network.send(identifier, message);
-    }
-  }
 
   /**
    * Implements the RPC interface to the C# side of the bridge.
@@ -106,7 +75,7 @@ public final class JavaBridge extends MultiObserverImpl {
    * Called when no more message processing is required.
    */
   public void onCompleted() {
-    LOG.log(Level.INFO, "OnCompleted");
+    LOG.log(Level.FINE, "OnCompleted");
   }
 
   /**
@@ -115,7 +84,7 @@ public final class JavaBridge extends MultiObserverImpl {
    * @param protocol A reference to the received Avro protocol message.
    */
   public void onNext(final long identifier, final BridgeProtocol protocol) {
-    LOG.log(Level.INFO, "Received protocol message: [{0}] {1}", new Object[] {identifier, protocol.getOffset()});
+    LOG.log(Level.FINEST, "Received protocol message: [{0}] {1}", new Object[] {identifier, protocol.getOffset()});
   }
 
   /**
@@ -127,7 +96,7 @@ public final class JavaBridge extends MultiObserverImpl {
    */
   public void onNext(final long identifier, final Acknowledgement acknowledgement)
         throws InvalidIdentifierException, InterruptedException {
-    LOG.log(Level.INFO, "Received acknowledgement message for id = [{0}]", identifier);
+    LOG.log(Level.FINEST, "Received acknowledgement message for id = [{0}]", identifier);
     blocker.release(acknowledgement.getMessageIdentifier());
   }
 
@@ -136,9 +105,15 @@ public final class JavaBridge extends MultiObserverImpl {
    * until an acknowledgement message is received.
    */
   public void callClrSystemOnStartHandler() throws InvalidIdentifierException, InterruptedException {
-    LOG.log(Level.INFO, "callClrSystemOnStartHandler called");
     final long identifier = idCounter.getAndIncrement();
-    blocker.block(identifier, new FutureTask<>(
-        new MessageSender(identifier, new SystemOnStart(timer.getCurrent() / 1000)), null));
+    LOG.log(Level.FINE, "callClrSystemOnStartHandler called with id [{0}]", identifier);
+    blocker.block(identifier, new Runnable() {
+      @Override
+      public void run() {
+        final SystemOnStart msgStart = new SystemOnStart(timer.getCurrent() / 1000);
+        LOG.log(Level.FINE, "Send start message [{0}] :: {1}", new Object[] {identifier, msgStart});
+        network.send(identifier, msgStart);
+      }
+    });
   }
 }

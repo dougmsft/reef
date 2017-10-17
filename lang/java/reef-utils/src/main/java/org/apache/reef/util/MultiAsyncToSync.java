@@ -35,10 +35,12 @@ import java.util.logging.Logger;
  * caller is released with a call to {@code release()}.
  */
 public final class MultiAsyncToSync {
+
   private static final Logger LOG = Logger.getLogger(MultiAsyncToSync.class.getName());
 
   private final ConcurrentLinkedQueue<ComplexCondition> freeQueue = new ConcurrentLinkedQueue<>();
   private final ConcurrentHashMap<Long, ComplexCondition> sleeperMap = new ConcurrentHashMap<>();
+
   private final long timeoutPeriod;
   private final TimeUnit timeoutUnits;
   private final ExecutorService executor;
@@ -51,9 +53,7 @@ public final class MultiAsyncToSync {
    */
   @Inject
   public MultiAsyncToSync(final long timeoutPeriod, final TimeUnit timeoutUnits) {
-    this.timeoutPeriod = timeoutPeriod;
-    this.timeoutUnits = timeoutUnits;
-    this.executor = null;
+    this(timeoutPeriod, timeoutUnits, null);
   }
 
   /**
@@ -61,7 +61,7 @@ public final class MultiAsyncToSync {
    * @param timeoutPeriod The length of time in units given by the the timeoutUnits
    *                      parameter before the condition automatically times out.
    * @param timeoutUnits The unit of time for the timeoutPeriod parameter.
-   * @param executor An executor service used to run async processors in the block method.
+   * @param executor An executor service used to run async processors in the block method. Can be null.
    */
   public MultiAsyncToSync(final long timeoutPeriod, final TimeUnit timeoutUnits, final ExecutorService executor) {
     this.timeoutPeriod = timeoutPeriod;
@@ -72,24 +72,25 @@ public final class MultiAsyncToSync {
   /**
    * Put the caller to sleep on a specific release identifier.
    * @param identifier The identifier required to awake the caller via the {@code release()} method.
-   * @param asyncProcessor A {@code FutureTask} object which returns {@code TAsync} that initiates the asynchronous
+   * @param asyncProcessor A {@code Runnable} object that initiates the asynchronous
    *                       processing associated with the call. This will occur inside the condition lock
    *                       to prevent the processing from generating the signal before the calling thread blocks.
    *                       Error conditions should be handled by throwing an exception which the caller
    *                       will catch. The caller can retrieve the results of the processing by calling
    *                       {@code asyndProcessor.get()}.
-   * @param <TAsync> The return type of the {@code asyncProcessor};
    * @return A boolean value that indicates whether or not a timeout or error occurred.
    * @throws InterruptedException The thread was interrupted while waiting on a condition.
    * @throws InvalidIdentifierException The identifier parameter is invalid.
    */
-  public <TAsync> boolean block(final long identifier, final FutureTask<TAsync> asyncProcessor)
+  public boolean block(final long identifier, final Runnable asyncProcessor)
         throws InterruptedException, InvalidIdentifierException {
-    final boolean timeoutOccurred;
+
     final ComplexCondition call = allocate();
     if (call.isHeldByCurrentThread()) {
       throw new RuntimeException("release() must not be called on same thread as block() to prevent deadlock");
     }
+
+    final boolean timeoutOccurred;
     try {
       call.lock();
       // Add the call identifier to the sleeper map so release() can identify this instantiation.
@@ -104,8 +105,7 @@ public final class MultiAsyncToSync {
       // Put the caller to sleep until the ack comes back. Note: we atomically
       // give up the look as the caller sleeps and atomically reacquire the
       // the lock as we wake up.
-      // FIXME: Change to FINER
-      LOG.log(Level.INFO, "Putting caller to sleep on identifier [{0}]", identifier);
+      LOG.log(Level.FINER, "Putting caller to sleep on identifier [{0}]", identifier);
       timeoutOccurred = !call.await();
       if (timeoutOccurred) {
         LOG.log(Level.SEVERE, "Call timed out on identifier [{0}]", identifier);
@@ -120,6 +120,7 @@ public final class MultiAsyncToSync {
         call.unlock();
       }
     }
+
     return timeoutOccurred;
   }
 
