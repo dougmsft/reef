@@ -64,20 +64,18 @@ public final class Network {
   @Inject
   public Network(
     final RemoteManagerFactory remoteManagerFactory,
-    final LocalAddressProvider localAddressProvider,
+      final LocalAddressProvider localAddressProvider,
     final ProtocolSerializer serializer,
     final TcpPortProvider tcpPortProvider,
     final LoggingEventHandler<Throwable> loggingEventHandler,
     final InjectionFuture<MultiObserver> observer) {
 
     LOG.log(Level.INFO, "Java bridge network nitializing");
-
-    this.remoteManager = remoteManagerFactory.getInstance("JavaBridgeNetwork",
-      localAddressProvider.getLocalAddress(), 0, new ByteCodec(),
-      loggingEventHandler, true, 3, 10000,
-      localAddressProvider, tcpPortProvider);
     this.serializer = serializer;
     this.messageObserver = observer;
+
+    this.remoteManager = remoteManagerFactory.getInstance(
+        "JavaBridgeNetwork", localAddressProvider.getLocalAddress(), 0, new ByteCodec());
 
     // Get our address and port number.
     final RemoteIdentifier remoteIdentifier = this.remoteManager.getMyIdentifier();
