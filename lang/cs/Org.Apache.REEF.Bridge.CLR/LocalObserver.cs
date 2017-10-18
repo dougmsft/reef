@@ -30,7 +30,7 @@ public sealed class LocalObserverParameters
     /// <summary>
     /// Specify the class that will be called to process deserialied Avro messages.
     /// </summary>
-    [NamedParameter(DefaultClass = typeof(object))]
+    [NamedParameter(Documentation = "Must implement IObserver<IMessageInstance<TMessage>> for messages to be received.")]
     public class MessageObserver : Name<object>
     {
     }
@@ -41,7 +41,6 @@ public sealed class LocalObserverParameters
 /// deserializes the messages into Avro C# classes, and invokes the appropriate
 /// IObserver callback on the Avro message observer.
 /// </summary>
-[DefaultImplementation(typeof(LocalObserver), "LocalObserver")]
 public sealed class LocalObserver : IObserver<IRemoteMessage<byte[]>>
 {
     private static readonly Logger Logger = Logger.GetLogger(typeof(LocalObserver));

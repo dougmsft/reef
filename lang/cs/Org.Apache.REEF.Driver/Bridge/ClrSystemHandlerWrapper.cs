@@ -287,6 +287,8 @@ namespace Org.Apache.REEF.Driver.Bridge
             try
             {
                 IConfiguration clrConfig = TangFactory.GetTang().NewConfigurationBuilder()
+                    .BindNamedParameter<LocalObserverParameters.MessageObserver, ClrBridge, object>(
+                         GenericType<LocalObserverParameters.MessageObserver>.Class, impl: GenericType<ClrBridge>.Class)
                     .BindStringNamedParam<ProtocolSerializer.AssemblyName>(typeof(Network).Assembly.FullName)
                     .BindStringNamedParam<ProtocolSerializer.MessageNamespace>("org.apache.reef.bridge.message")
                     .Build();

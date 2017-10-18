@@ -116,7 +116,7 @@ namespace Org.Apache.REEF.Wake.Avro
             {
                 messageSerializer.Serialize(stream, (TMessage)message);
             };
-            serializeMap.Add(typeof(TMessage).Name, serialize);
+            serializeMap.Add(typeof(TMessage).FullName, serialize);
 
             Deserialize deserialize = (MemoryStream stream, object observer, long sequence) =>
             {
@@ -132,7 +132,7 @@ namespace Org.Apache.REEF.Wake.Avro
                     Logr.Log(Level.Warning, "Unhandled message received: {0}", message);
                 }
             };
-            deserializeMap.Add(typeof(TMessage).Name, deserialize);
+            deserializeMap.Add(typeof(TMessage).FullName, deserialize);
         }
 
         /// <summary>
@@ -144,7 +144,7 @@ namespace Org.Apache.REEF.Wake.Avro
         /// <returns>A byte array containing the serialized header and message.</returns>
         public byte[] Write(object message, long sequence) 
         {
-            string name = message.GetType().Name;
+            string name = message.GetType().FullName;
             Logr.Log(Level.Info, "Serializing message: {0}", name);
             try
             { 
