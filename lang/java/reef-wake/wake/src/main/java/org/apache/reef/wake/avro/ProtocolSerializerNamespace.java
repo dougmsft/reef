@@ -16,21 +16,17 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-[
-  /*
-   * Notify Java bridge CLR bridge is ininitialized.
-   */
-  {
-    "namespace":"org.apache.reef.bridge.message",
-    "type":"record",
-    "name":"Protocol",
-    "doc":"Negotiate Java/C# bridge protocol messages.",
-    "fields":[
-      {
-        "name":"offset",
-        "type":"int",
-        "doc":"The index offset of the message identifiers."
-      }
-    ]
-  }
-]
+package org.apache.reef.wake.avro;
+
+import org.apache.reef.tang.annotations.Name;
+import org.apache.reef.tang.annotations.NamedParameter;
+
+/**
+ * ProtocolSerializer parameter: full name of the package containing protocol messages.
+ */
+@NamedParameter(doc = "full name of the package containing protocol messages",
+    short_name = "protocol_serializer_namespace")
+public final class ProtocolSerializerNamespace implements Name<String> {
+  /** Do not instantiate that class. */
+  private ProtocolSerializerNamespace() { }
+}

@@ -76,7 +76,7 @@ namespace Org.Apache.REEF.Wake.Tests
             BlockingCollection<byte[]> queue1 = new BlockingCollection<byte[]>();
             BlockingCollection<byte[]> queue2 = new BlockingCollection<byte[]>();
 
-            ProtocolSerializer serializer = new ProtocolSerializer(this.GetType().Assembly, "org.apache.reef.wake.tests.message");
+            ProtocolSerializer serializer = new ProtocolSerializer(this.GetType().Assembly.FullName, "org.apache.reef.wake.tests.message");
             IRemoteManagerFactory _remoteManagerFactory = TangFactory.GetTang().NewInjector().GetInstance<IRemoteManagerFactory>();
 
             using (var remoteManager1 = _remoteManagerFactory.GetInstance(listeningAddress, new ByteCodec()))
