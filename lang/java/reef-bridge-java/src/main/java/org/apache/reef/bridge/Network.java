@@ -24,6 +24,8 @@ import org.apache.reef.wake.EventHandler;
 import org.apache.reef.wake.MultiObserver;
 import org.apache.reef.wake.avro.ProtocolSerializer;
 import org.apache.reef.wake.remote.RemoteMessage;
+import org.apache.reef.wake.remote.address.LocalAddressProvider;
+import org.apache.reef.wake.remote.impl.ByteCodec;
 import org.apache.reef.wake.remote.impl.SocketRemoteIdentifier;
 import org.apache.reef.wake.remote.RemoteIdentifier;
 import org.apache.reef.wake.remote.RemoteManager;
@@ -59,14 +61,17 @@ public final class Network {
   @Inject
   public Network(
       final RemoteManagerFactory remoteManagerFactory,
+      final LocalAddressProvider localAddressProvider,
       final ProtocolSerializer serializer,
       final InjectionFuture<MultiObserver> observer) {
 
     LOG.log(Level.INFO, "Initializing");
 
-    this.remoteManager = remoteManagerFactory.getInstance("JavaBridgeNetwork");
     this.serializer = serializer;
     this.messageObserver = observer;
+
+    this.remoteManager = remoteManagerFactory.getInstance(
+        "JavaBridgeNetwork", localAddressProvider.getLocalAddress(), 0, new ByteCodec());
 
     // Get our address and port number.
     final RemoteIdentifier remoteIdentifier = this.remoteManager.getMyIdentifier();
