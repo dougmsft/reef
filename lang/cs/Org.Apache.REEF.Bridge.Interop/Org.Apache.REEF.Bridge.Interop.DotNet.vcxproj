@@ -17,7 +17,7 @@ under the License.
 -->
 <Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
-    <TargetName>Org.Apache.REEF.Bridge.Dll</TargetName>
+    <TargetName>Org.Apache.REEF.Bridge.Interop</TargetName>
     <BuildInParallel>false</BuildInParallel>
     <Configuration Condition="'$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition="'$(Platform)' == ''">x64</Platform>
@@ -38,7 +38,7 @@ under the License.
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
     <ProjectGuid>{715E4448-8938-4ABA-BE1E-CB407E79D76B}</ProjectGuid>
-    <RootNamespace>OrgApacheREEFBridgeDotNetDll</RootNamespace>
+    <RootNamespace>OrgApacheREEFBridgeInterop</RootNamespace>
     <WindowsTargetPlatformVersion Condition="'$(MSBuildAssemblyVersion)' >= '15.0'">10.0.15063.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
