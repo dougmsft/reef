@@ -91,11 +91,11 @@ under the License.
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <OutDir>$(BinDir)$(Configuration)\Org.Apache.REEF.Bridge.Dll\</OutDir>
+    <OutDir>$(BinDir)$(Configuration)\Org.Apache.REEF.Bridge.Interop\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <OutDir>$(BinDir)$(Configuration)\Org.Apache.REEF.Bridge.Dll\</OutDir>
+    <OutDir>$(BinDir)$(Configuration)\Org.Apache.REEF.Bridge.Interop\</OutDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
