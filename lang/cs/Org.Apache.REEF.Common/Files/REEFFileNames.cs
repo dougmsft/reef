@@ -252,9 +252,9 @@ namespace Org.Apache.REEF.Common.Files
         }
         
         /// <summary>
-        /// The path of the Driver Launcher exe.
+        /// The path of the bridge interop library.
         /// </summary>
-        /// <returns>path of the Driver Launcher EXE.</returns>
+        /// <returns>path of the driver interop library.</returns>
         public string GetBridgeInteropLibPath()
         {
             return Path.Combine(REEF_BASE_FOLDER, BRIDGE_INTEROP_LIB_NAME);

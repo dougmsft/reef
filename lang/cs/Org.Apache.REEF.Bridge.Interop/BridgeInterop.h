@@ -31,13 +31,15 @@
 #endif
 
 
+/// Delegate function pointer type definitions.
+typedef void(*AllocateBridgeLoggerDelegatePtr)(wchar_t const* classname);
+    
 extern  "C"
 {
-    // PInvoke API
-    BRIDGE_INTEROP_API void LoadClrAssembly();
+    BRIDGE_INTEROP_API void InitializeBridgeLoggers();
 
-    // Delegate API
-    BRIDGE_INTEROP_API void Set_BridgeLogger_Log(void(*Log)());
+    /// Delegates set from C#.
+    BRIDGE_INTEROP_API void SetAllocateBridgeLoggerDelagate(AllocateBridgeLoggerDelegatePtr allocateBridgeLoggerDelegate);
 }
 
 #endif // BRIDGE_INTEROP_H

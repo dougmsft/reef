@@ -16,20 +16,24 @@
 // under the License.
 
 #include "BridgeInterop.h"
+#include <string>
 
 namespace
 {
 
+    AllocateBridgeLoggerDelegatePtr _allocateBridgeLoggerDelegate = 0;
 }
 
 extern  "C"
 {
-
-    BRIDGE_INTEROP_API void __cdecl LoadClrAssembly()
+    BRIDGE_INTEROP_API void InitializeBridgeLoggers()
     {
+        std::wstring classname = L"InteropDll";
+        _allocateBridgeLoggerDelegate(classname.c_str());
     }
 
-    BRIDGE_INTEROP_API void Set_BridgeLogger_Log(void (*Log)())
+    BRIDGE_INTEROP_API void SetAllocateBridgeLoggerDelagate(AllocateBridgeLoggerDelegatePtr allocateBridgeLoggerDelegate)
     {
+        _allocateBridgeLoggerDelegate = allocateBridgeLoggerDelegate;
     }
 }
