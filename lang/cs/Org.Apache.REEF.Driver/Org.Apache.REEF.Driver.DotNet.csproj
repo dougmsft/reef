@@ -24,12 +24,6 @@ under the License.
   </PropertyGroup>
   <Import Project="..\build.DotNetLibrary.props" />
   <ItemGroup>
-    <Compile Remove="Bridge\BridgeLoggerInterop.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Bridge\BridgeLoggerInterop.cs" />
-  </ItemGroup>
-  <ItemGroup>
     <PackageReference Include="protobuf-net" Version="$(ProtobufVersion)" />
     <PackageReference Include="Microsoft.Avro.Core" Version="$(AvroVersion)" />
   </ItemGroup>

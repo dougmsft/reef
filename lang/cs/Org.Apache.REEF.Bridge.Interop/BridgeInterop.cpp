@@ -16,24 +16,16 @@
 // under the License.
 
 #include "BridgeInterop.h"
-#include <string>
+#include "BridgeInteropLogger.h"
 
-namespace
-{
-
-    AllocateBridgeLoggerDelegatePtr _allocateBridgeLoggerDelegate = 0;
-}
+using namespace std;
+using namespace Org::Apache::REEF::Driver::Bridge;
 
 extern  "C"
 {
-    BRIDGE_INTEROP_API void InitializeBridgeLoggers()
+    BRIDGE_INTEROP_API void TestBridgeLoggers()
     {
-        std::wstring classname = L"InteropDll";
-        _allocateBridgeLoggerDelegate(classname.c_str());
-    }
-
-    BRIDGE_INTEROP_API void SetAllocateBridgeLoggerDelagate(AllocateBridgeLoggerDelegatePtr allocateBridgeLoggerDelegate)
-    {
-        _allocateBridgeLoggerDelegate = allocateBridgeLoggerDelegate;
+        BridgeInteropLogger*  loggerPtr = new BridgeInteropLogger(wstring(L"BRIDGELOGGERTEST"));
+        loggerPtr->Log(L"THIS IS A TEST LOG MESSAGE");
     }
 }

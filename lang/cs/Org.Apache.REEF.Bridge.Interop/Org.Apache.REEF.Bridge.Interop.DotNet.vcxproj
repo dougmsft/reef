@@ -39,7 +39,7 @@ under the License.
     <VCProjectVersion>15.0</VCProjectVersion>
     <ProjectGuid>{715E4448-8938-4ABA-BE1E-CB407E79D76B}</ProjectGuid>
     <RootNamespace>OrgApacheREEFBridgeInterop</RootNamespace>
-    <WindowsTargetPlatformVersion Condition="'$(MSBuildAssemblyVersion)' >= '15.0'">10.0.15063.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion Condition="'$(MSBuildAssemblyVersion)' &gt;= '15.0'">10.0.15063.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <!--
@@ -106,6 +106,7 @@ under the License.
       <PreprocessorDefinitions>_DEBUG;ORGAPACHEREEFBRIDGEDOTNETDLL_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeaderFile />
+      <AdditionalIncludeDirectories>..\..\java\reef-bridge-java\target\classes;$(JAVA_HOME)\include;$(JAVA_HOME)\include\win32;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -122,6 +123,7 @@ under the License.
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;ORGAPACHEREEFBRIDGEDOTNETDLL_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>..\..\java\reef-bridge-java\target\classes;$(JAVA_HOME)\include;$(JAVA_HOME)\include\win32;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -132,10 +134,13 @@ under the License.
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="BridgeInterop.h" />
+    <ClInclude Include="BridgeInteropLogger.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="BridgeInteropLogger.cpp" />
     <ClCompile Include="BridgeInteropMain.cpp" />
     <ClCompile Include="BridgeInterop.cpp" />
+    <ClCompile Include="JavaToCpp.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

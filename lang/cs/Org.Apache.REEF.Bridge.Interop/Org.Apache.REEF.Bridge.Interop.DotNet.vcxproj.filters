@@ -18,12 +18,21 @@
     <ClInclude Include="BridgeInterop.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="BridgeInteropLogger.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BridgeInterop.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="BridgeInteropMain.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="JavaToCpp.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="BridgeInteropLogger.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

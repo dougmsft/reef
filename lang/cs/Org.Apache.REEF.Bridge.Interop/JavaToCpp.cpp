@@ -13,21 +13,17 @@
 // "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
 // KIND, either express or implied.  See the License for the
 // specific language governing permissions and limitations
-// under the License.
+// under the License
 
-#ifndef BRIDGE_INTEROP_H
-#define BRIDGE_INTEROP_H
 
-#ifdef _WINDOWS
-    #define BRIDGE_INTEROP_API __declspec(dllexport)   
-#else  
-    #define BRIDGE_INTEROP_API 
-#endif  
+#include <jni.h>
+#include <org_apache_reef_javabridge_JavaToCppInterop.h>
 
-#ifdef _WINDOWS
-    #include <SDKDDKVer.h>
-    #define WIN32_LEAN_AND_MEAN 
-    #include <windows.h>
-#endif
 
-#endif // BRIDGE_INTEROP_H
+JNIEXPORT void JNICALL Java_org_apache_reef_javabridge_JavaToCppInterop_initializeInterop(JNIEnv* env, jclass jObj)
+{
+}
+
+static JNINativeMethod methods[] = {
+  { (char*)"initializeInterop", (char*)"(Ljava/lang/String;)V", (void*)&Java_org_apache_reef_javabridge_JavaToCppInterop_initializeInterop }
+};

@@ -168,6 +168,16 @@ under the License.
                                     <arg value="org.apache.reef.javabridge.NativeInterop"/>
                                 </exec>
                             </target>
+                            <target>
+                                <property name="runtime_classpath" refid="maven.compile.classpath"/>
+                                <exec executable="javah">
+                                    <arg value="-cp"/>
+                                    <arg value="${runtime_classpath}"/>
+                                    <arg value="-d"/>
+                                    <arg value="${project.build.directory}/classes"/>
+                                    <arg value="org.apache.reef.javabridge.JavaToCppInterop"/>
+                                </exec>
+                            </target>
                         </configuration>
                     </execution>
                 </executions>

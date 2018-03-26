@@ -15,19 +15,37 @@
 // specific language governing permissions and limitations
 // under the License.
 
-#ifndef BRIDGE_INTEROP_H
-#define BRIDGE_INTEROP_H
+#ifndef BRIDGE_INTEROP_LOGGER_H
+#define BRIDGE_INTEROP_LOGGER_H
 
-#ifdef _WINDOWS
-    #define BRIDGE_INTEROP_API __declspec(dllexport)   
-#else  
-    #define BRIDGE_INTEROP_API 
-#endif  
+#include <cstdint>
+#include <string>
 
-#ifdef _WINDOWS
-    #include <SDKDDKVer.h>
-    #define WIN32_LEAN_AND_MEAN 
-    #include <windows.h>
-#endif
+namespace Org
+{
+    namespace Apache
+    {
+        namespace REEF
+        {
+            namespace Driver
+            {
+                namespace Bridge
+                {
+                    class BridgeInteropLogger
+                    {
+                    public:
+                        BridgeInteropLogger(std::wstring classname);
+                        
+                        void Log(std::wstring message);
 
-#endif // BRIDGE_INTEROP_H
+                    private:
+                        std::int32_t _index;
+                    };
+                }
+            }
+
+        }
+    }
+}
+#endif // BRIDGE_INTEROP_LOGGER_H
+

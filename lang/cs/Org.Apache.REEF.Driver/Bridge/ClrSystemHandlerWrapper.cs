@@ -254,6 +254,7 @@ namespace Org.Apache.REEF.Driver.Bridge
             using (LOGGER.LogFunction("ClrSystemHandlerWrapper::Call_ClrSystemStartHandler_OnStart"))
             {
                 LOGGER.Log(Level.Info, "*** Start time is " + startTime);
+                BridgeInteropLogger.Initialize();
                 _driverBridge.StartHandlersOnNext(startTime);
             }
         }
