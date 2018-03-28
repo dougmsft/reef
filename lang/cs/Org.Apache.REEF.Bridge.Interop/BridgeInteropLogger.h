@@ -31,12 +31,20 @@ namespace Org
             {
                 namespace Bridge
                 {
+                    ///
+                    /// The BridgeInteropLogger provids the C++ representation of the 
+                    /// the C# bridge logger.
+                    ///
                     class BridgeInteropLogger
                     {
                     public:
                         BridgeInteropLogger(std::wstring classname);
+                        ~BridgeInteropLogger();
                         
-                        void Log(std::wstring message);
+                        void Log(std::wstring const& message);
+                        void LogStart(std::wstring const& message);
+                        void LogStop(std::wstring const& message);
+                        void LogError(std::wstring const& message, std::wstring const& excep);
 
                     private:
                         std::int32_t _index;

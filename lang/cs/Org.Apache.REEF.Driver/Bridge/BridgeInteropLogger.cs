@@ -24,31 +24,70 @@ using Org.Apache.REEF.Utilities.Logging;
 
 namespace Org.Apache.REEF.Driver.Bridge
 {
-    [Private]
-    public static class BridgeInteropLogger
+    internal static class BridgeLoggerDelegates
+    {
+        /// Declarations of delegates passsed into the interop library to give it access the managed logger.
+        public delegate Int32 AllocateLogger([MarshalAs(UnmanagedType.LPWStr)] string classname);
+        public delegate void Log(Int32 index, [MarshalAs(UnmanagedType.LPWStr)] string message);
+        public delegate void LogStart(Int32 index, [MarshalAs(UnmanagedType.LPWStr)] string message);
+        public delegate void LogStop(Int32 index, [MarshalAs(UnmanagedType.LPWStr)] string message);
+        public delegate void LogError(Int32 index, [MarshalAs(UnmanagedType.LPWStr)] string message,  [MarshalAs(UnmanagedType.LPWStr)] string execp);
+    }
+
+    internal static class BridgeLoggerLibrary
     {
         /// Interop library filename
         private const string INTEROP_LIBRARY = "Org.Apache.REEF.Bridge.Interop.dll";
+
+        /// Interop library immports to set the bridge interop logger delegates in the C++ library.
+        [DllImport(INTEROP_LIBRARY)]
+        public static extern void SetAllocateBridgeLoggerDelegate(BridgeLoggerDelegates.AllocateLogger allocateLogger);
+
+        [DllImport(INTEROP_LIBRARY)]
+        public static extern void SetLogDelegate(BridgeLoggerDelegates.Log log);
+
+        [DllImport(INTEROP_LIBRARY)]
+        public static extern void SetLogStartDelegate(BridgeLoggerDelegates.LogStart logStart);
+
+        [DllImport(INTEROP_LIBRARY)]
+        public static extern void SetLogStopDelegate(BridgeLoggerDelegates.LogStop logStop);
+
+        [DllImport(INTEROP_LIBRARY)]
+        public static extern void SetLogErrorDelegate(BridgeLoggerDelegates.LogError logError);
+
+        [DllImport(INTEROP_LIBRARY)]
+        public static extern void TestBridgeLoggers();
+    }
+
+    public static class BridgeInteropLogger
+    {
+        /// Local logger
         private static readonly Logger _logger = Logger.GetLogger(typeof(BridgeInteropLogger));
+        /// Dictionary fo=r tracking instances.
         private static ConcurrentDictionary<Int32, BridgeLogger> _interopLoggers = new ConcurrentDictionary<Int32, BridgeLogger>();
         private static Int32 _index = 0;
 
-        /// C# to C++ interface.
-        [DllImport(INTEROP_LIBRARY)]
-        private static extern void TestBridgeLoggers();
+        /// Pinned delegates
+        private static GCHandle allocateLogger;
+        private static GCHandle log;
+        private static GCHandle logStart;
+        private static GCHandle logStop;
+        private static GCHandle logError;
 
-        /// Declarations of delegates passsed into the interop library to give it access the managed logger.
-        private delegate Int32 AllocateBridgeLogerDelegate([MarshalAs(UnmanagedType.LPWStr)] string classname);
-        private delegate void LogDelegate(Int32 index, [MarshalAs(UnmanagedType.LPWStr)] string message);
+        public static void Initialize()
+        {
+            InitializeDelegates();
 
-        /// Interop library immports to set the managed log delagates.
-        [DllImport(INTEROP_LIBRARY)]
-        private static extern void SetAllocateBridgeLoggerDelegate(AllocateBridgeLogerDelegate allocateBridgeLoggerDelegate);
-        [DllImport(INTEROP_LIBRARY)]
-        private static extern void SetLogDelegate(LogDelegate logDelegate);
+            BridgeLoggerLibrary.SetAllocateBridgeLoggerDelegate((BridgeLoggerDelegates.AllocateLogger)allocateLogger.Target);
+            BridgeLoggerLibrary.SetLogDelegate((BridgeLoggerDelegates.Log)log.Target);
+            BridgeLoggerLibrary.SetLogStartDelegate((BridgeLoggerDelegates.LogStart)logStart.Target);
+            BridgeLoggerLibrary.SetLogStopDelegate((BridgeLoggerDelegates.LogStop)logStop.Target);
+            BridgeLoggerLibrary.SetLogErrorDelegate((BridgeLoggerDelegates.LogError)logError.Target);
+            BridgeLoggerLibrary.TestBridgeLoggers();
+        }
 
         /// Bridge logger delegate implementations
-        static Int32 AllocateBridgeLoggerImpl([MarshalAs(UnmanagedType.LPWStr)] string classname)
+        private static Int32 AllocateBridgeLoggerImpl([MarshalAs(UnmanagedType.LPWStr)] string classname)
         {
             BridgeLogger interopLogger = BridgeLogger.GetLogger(classname);
             Int32 index = Interlocked.Increment(ref _index);
@@ -63,7 +102,7 @@ namespace Org.Apache.REEF.Driver.Bridge
             return index;
         }
 
-        static void LogDelegateImpl(Int32 index, [MarshalAs(UnmanagedType.LPWStr)] string message)
+        private static void LogImpl(Int32 index, [MarshalAs(UnmanagedType.LPWStr)] string message)
         {
             BridgeLogger interopLogger;
             if (_interopLoggers.TryGetValue(index, out interopLogger))
@@ -76,11 +115,61 @@ namespace Org.Apache.REEF.Driver.Bridge
             }
         }
 
-        public static void Initialize()
+        private static void LogStartImpl(Int32 index, [MarshalAs(UnmanagedType.LPWStr)] string message)
         {
-            SetAllocateBridgeLoggerDelegate(AllocateBridgeLoggerImpl);
-            SetLogDelegate(LogDelegateImpl);
-            TestBridgeLoggers();
+            BridgeLogger interopLogger;
+            if (_interopLoggers.TryGetValue(index, out interopLogger))
+            {
+                interopLogger.LogStart(message);
+            }
+            else
+            {
+                _logger.Log(Level.Error, "Invalid logger requested for id = [{0}]", index);
+            }
+        }
+
+        private static void LogStopImpl(Int32 index, [MarshalAs(UnmanagedType.LPWStr)] string message)
+        {
+            BridgeLogger interopLogger;
+            if (_interopLoggers.TryGetValue(index, out interopLogger))
+            {
+                interopLogger.LogStop(message);
+            }
+            else
+            {
+                _logger.Log(Level.Error, "Invalid logger requested for id = [{0}]", index);
+            }
+        }
+
+        private static void LogErrorImpl(Int32 index, [MarshalAs(UnmanagedType.LPWStr)] string message,  [MarshalAs(UnmanagedType.LPWStr)] string excep)
+        {
+            BridgeLogger interopLogger;
+            if (_interopLoggers.TryGetValue(index, out interopLogger))
+            {
+                interopLogger.LogError(message, new Exception(excep));
+            }
+            else
+            {
+                _logger.Log(Level.Error, "Invalid logger requested for id = [{0}]", index);
+            }
+        }
+
+        private static void InitializeDelegates()
+        {
+            allocateLogger = GCHandle.Alloc(new BridgeLoggerDelegates.AllocateLogger(AllocateBridgeLoggerImpl), GCHandleType.Pinned);
+            log = GCHandle.Alloc(new BridgeLoggerDelegates.Log(LogImpl), GCHandleType.Pinned);
+            logStart = GCHandle.Alloc(new BridgeLoggerDelegates.LogStart(LogStartImpl), GCHandleType.Pinned);
+            logStop = GCHandle.Alloc(new BridgeLoggerDelegates.LogStop(LogStopImpl), GCHandleType.Pinned);
+            logError = GCHandle.Alloc(new BridgeLoggerDelegates.LogError(LogErrorImpl), GCHandleType.Pinned);
+        }
+
+        private static void UninitializeDelegates()
+        {
+            allocateLogger.Free();
+            log.Free();
+            logStart.Free();
+            logStop.Free();
+            logError.Free();
         }
     }
 }

@@ -22,40 +22,78 @@
 /// Namespace usage
 using namespace std;
 
-/// <summary>
+///
 /// Anonymous namespace to hold the pointers to C# delegates needed to call into C#.
-/// </summary>
+///
 namespace
 {
     /// Delegate function pointer type definitions.
-    typedef int32_t (*AllocateBridgeLoggerDelegatePtr)(wchar_t const* classname);
-    typedef void (*LogDelegatePtr)(int32_t index, wchar_t const* message);
+    typedef int32_t (*AllocateLoggerPtr)(wchar_t const* classname);
+    typedef void (*LogPtr)(int32_t index, wchar_t const* message);
+    typedef void (*LogStartPtr)(int32_t index, wchar_t const* message);
+    typedef void (*LogStopPtr)(int32_t index, wchar_t const* message);
+    typedef void (*LogErrorPtr)(int32_t index, wchar_t const* message, wchar_t const* excep);
 
-    AllocateBridgeLoggerDelegatePtr     _allocateBridgeLoggerDelegate = 0;
-    LogDelegatePtr                      _logDelegate = 0;
+    typedef struct
+    {
+        AllocateLoggerPtr   allocateLogger = 0;
+        LogPtr              log = 0;
+        LogStartPtr         logStart = 0;
+        LogStopPtr          logStop = 0;
+        LogErrorPtr         logError = 0;
+    } BridgeLoggerDelegates;
+
+    BridgeLoggerDelegates delegates;
 }
 
+///
+/// DLL API called from C# to set the delegates needed by bridge interop logger
+/// to call the corresponding C# bridge interop logger methods.
+///
 extern  "C"
 {
-    BRIDGE_INTEROP_API void SetAllocateBridgeLoggerDelegate(AllocateBridgeLoggerDelegatePtr allocateBridgeLoggerDelegate)
+    BRIDGE_INTEROP_API void SetAllocateBridgeLoggerDelegate(AllocateLoggerPtr allocateLogger)
     {
-        _allocateBridgeLoggerDelegate = allocateBridgeLoggerDelegate;
+        delegates.allocateLogger = allocateLogger;
     }
 
-    BRIDGE_INTEROP_API void SetLogDelegate(LogDelegatePtr logDelegate)
+    BRIDGE_INTEROP_API void SetLog(LogPtr log)
     {
-        _logDelegate= logDelegate;
+        delegates.log = log;
     }
 }
 
 ///
+/// Bridge interop logger method implementation.
 ///
+
 Org::Apache::REEF::Driver::Bridge::BridgeInteropLogger::BridgeInteropLogger(wstring classname)
 {
-    _index = _allocateBridgeLoggerDelegate(classname.c_str());
+    _index = delegates.allocateLogger(classname.c_str());
 }
 
-void Org::Apache::REEF::Driver::Bridge::BridgeInteropLogger::Log(wstring message)
+Org::Apache::REEF::Driver::Bridge::BridgeInteropLogger::~BridgeInteropLogger()
 {
-    _logDelegate(_index, message.c_str());
+}
+
+/// Logging methods
+
+void Org::Apache::REEF::Driver::Bridge::BridgeInteropLogger::Log(wstring const& message)
+{
+    delegates.log(_index, message.c_str());
+}
+
+void Org::Apache::REEF::Driver::Bridge::BridgeInteropLogger::LogStart(wstring const& message)
+{
+    delegates.logStart(_index, message.c_str());
+}
+
+void Org::Apache::REEF::Driver::Bridge::BridgeInteropLogger::LogStop(wstring const& message)
+{
+    delegates.logStop(_index, message.c_str());
+}
+
+void Org::Apache::REEF::Driver::Bridge::BridgeInteropLogger::LogError(wstring const& message, wstring const& excep)
+{
+    delegates.logError(_index, message.c_str(), excep.c_str());
 }
