@@ -47,8 +47,8 @@ namespace Org.Apache.REEF.Driver.Bridge.Interop
             BridgeLoggerLibrary.SetAllocateBridgeLoggerDelegate(allocateLogger);
             BridgeLoggerLibrary.SetLogDelegate(log);
             BridgeLoggerLibrary.SetLogStartDelegate(logStart);
-            BridgeLoggerLibrary.SetLogStopDelegate((BridgeLoggerDelegates.LogStop)logStop.Target);
-            BridgeLoggerLibrary.SetLogErrorDelegate((BridgeLoggerDelegates.LogError)logError.Target);
+            BridgeLoggerLibrary.SetLogStopDelegate(logStop);
+            BridgeLoggerLibrary.SetLogErrorDelegate(logError);
             BridgeLoggerLibrary.TestBridgeLoggers();
         }
 

@@ -29,6 +29,6 @@ extern  "C"
         loggerPtr->LogStart(L"THIS IS A TEST LOG START MESSAGE");
         loggerPtr->Log(L"THIS IS A TEST LOG MESSAGE");
         loggerPtr->LogStop(L"THIS IS A TEST LOG STOP MESSAGE");
-        loggerPtr->LogError(L"THIS IS A TEST LOG ERROR MESSAGE", L"THIS IS THE EXCEPTION");
+        //loggerPtr->LogError(L"THIS IS A TEST LOG ERROR MESSAGE", L"THIS IS THE EXCEPTION");
     }
 }
