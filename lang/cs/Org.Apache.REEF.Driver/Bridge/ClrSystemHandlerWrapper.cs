@@ -21,6 +21,7 @@ using System.Runtime.InteropServices;
 using Org.Apache.REEF.Common.Context;
 using Org.Apache.REEF.Driver.Bridge.Clr2java;
 using Org.Apache.REEF.Driver.Bridge.Events;
+using Org.Apache.REEF.Driver.Bridge.Interop;
 using Org.Apache.REEF.Driver.Context;
 using Org.Apache.REEF.Driver.Evaluator;
 using Org.Apache.REEF.Driver.Task;

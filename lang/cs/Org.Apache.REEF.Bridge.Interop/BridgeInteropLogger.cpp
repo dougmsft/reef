@@ -57,9 +57,24 @@ extern  "C"
         delegates.allocateLogger = allocateLogger;
     }
 
-    BRIDGE_INTEROP_API void SetLog(LogPtr log)
+    BRIDGE_INTEROP_API void SetLogDelegate(LogPtr log)
     {
         delegates.log = log;
+    }
+
+    BRIDGE_INTEROP_API void SetLogStartDelegate(LogStartPtr logStart)
+    {
+        delegates.logStart = logStart;
+    }
+
+    BRIDGE_INTEROP_API void SetLogStopDelegate(LogStopPtr logStop)
+    {
+        delegates.logStop = logStop;
+    }
+
+    BRIDGE_INTEROP_API void SetLogErrorDelegate(LogErrorPtr logError)
+    {
+        delegates.logError = logError;
     }
 }
 

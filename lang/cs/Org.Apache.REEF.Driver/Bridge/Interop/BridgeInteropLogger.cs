@@ -22,43 +22,9 @@ using System.Runtime.InteropServices;
 using Org.Apache.REEF.Utilities.Attributes;
 using Org.Apache.REEF.Utilities.Logging;
 
-namespace Org.Apache.REEF.Driver.Bridge
+namespace Org.Apache.REEF.Driver.Bridge.Interop
 {
-    internal static class BridgeLoggerDelegates
-    {
-        /// Declarations of delegates passsed into the interop library to give it access the managed logger.
-        public delegate Int32 AllocateLogger([MarshalAs(UnmanagedType.LPWStr)] string classname);
-        public delegate void Log(Int32 index, [MarshalAs(UnmanagedType.LPWStr)] string message);
-        public delegate void LogStart(Int32 index, [MarshalAs(UnmanagedType.LPWStr)] string message);
-        public delegate void LogStop(Int32 index, [MarshalAs(UnmanagedType.LPWStr)] string message);
-        public delegate void LogError(Int32 index, [MarshalAs(UnmanagedType.LPWStr)] string message,  [MarshalAs(UnmanagedType.LPWStr)] string execp);
-    }
-
-    internal static class BridgeLoggerLibrary
-    {
-        /// Interop library filename
-        private const string INTEROP_LIBRARY = "Org.Apache.REEF.Bridge.Interop.dll";
-
-        /// Interop library immports to set the bridge interop logger delegates in the C++ library.
-        [DllImport(INTEROP_LIBRARY)]
-        public static extern void SetAllocateBridgeLoggerDelegate(BridgeLoggerDelegates.AllocateLogger allocateLogger);
-
-        [DllImport(INTEROP_LIBRARY)]
-        public static extern void SetLogDelegate(BridgeLoggerDelegates.Log log);
-
-        [DllImport(INTEROP_LIBRARY)]
-        public static extern void SetLogStartDelegate(BridgeLoggerDelegates.LogStart logStart);
-
-        [DllImport(INTEROP_LIBRARY)]
-        public static extern void SetLogStopDelegate(BridgeLoggerDelegates.LogStop logStop);
-
-        [DllImport(INTEROP_LIBRARY)]
-        public static extern void SetLogErrorDelegate(BridgeLoggerDelegates.LogError logError);
-
-        [DllImport(INTEROP_LIBRARY)]
-        public static extern void TestBridgeLoggers();
-    }
-
+    [Private]
     public static class BridgeInteropLogger
     {
         /// Local logger
@@ -68,19 +34,19 @@ namespace Org.Apache.REEF.Driver.Bridge
         private static Int32 _index = 0;
 
         /// Pinned delegates
-        private static GCHandle allocateLogger;
-        private static GCHandle log;
-        private static GCHandle logStart;
-        private static GCHandle logStop;
-        private static GCHandle logError;
+        private static BridgeLoggerDelegates.AllocateLogger allocateLogger;
+        private static BridgeLoggerDelegates.Log log;
+        private static BridgeLoggerDelegates.LogStart logStart;
+        private static BridgeLoggerDelegates.LogStop logStop;
+        private static BridgeLoggerDelegates.LogError logError;
 
         public static void Initialize()
         {
             InitializeDelegates();
 
-            BridgeLoggerLibrary.SetAllocateBridgeLoggerDelegate((BridgeLoggerDelegates.AllocateLogger)allocateLogger.Target);
-            BridgeLoggerLibrary.SetLogDelegate((BridgeLoggerDelegates.Log)log.Target);
-            BridgeLoggerLibrary.SetLogStartDelegate((BridgeLoggerDelegates.LogStart)logStart.Target);
+            BridgeLoggerLibrary.SetAllocateBridgeLoggerDelegate(allocateLogger);
+            BridgeLoggerLibrary.SetLogDelegate(log);
+            BridgeLoggerLibrary.SetLogStartDelegate(logStart);
             BridgeLoggerLibrary.SetLogStopDelegate((BridgeLoggerDelegates.LogStop)logStop.Target);
             BridgeLoggerLibrary.SetLogErrorDelegate((BridgeLoggerDelegates.LogError)logError.Target);
             BridgeLoggerLibrary.TestBridgeLoggers();
@@ -154,22 +120,13 @@ namespace Org.Apache.REEF.Driver.Bridge
             }
         }
 
-        private static void InitializeDelegates()
+        static void InitializeDelegates()
         {
-            allocateLogger = GCHandle.Alloc(new BridgeLoggerDelegates.AllocateLogger(AllocateBridgeLoggerImpl), GCHandleType.Pinned);
-            log = GCHandle.Alloc(new BridgeLoggerDelegates.Log(LogImpl), GCHandleType.Pinned);
-            logStart = GCHandle.Alloc(new BridgeLoggerDelegates.LogStart(LogStartImpl), GCHandleType.Pinned);
-            logStop = GCHandle.Alloc(new BridgeLoggerDelegates.LogStop(LogStopImpl), GCHandleType.Pinned);
-            logError = GCHandle.Alloc(new BridgeLoggerDelegates.LogError(LogErrorImpl), GCHandleType.Pinned);
-        }
-
-        private static void UninitializeDelegates()
-        {
-            allocateLogger.Free();
-            log.Free();
-            logStart.Free();
-            logStop.Free();
-            logError.Free();
+            allocateLogger = new BridgeLoggerDelegates.AllocateLogger(AllocateBridgeLoggerImpl);
+            log = new BridgeLoggerDelegates.Log(LogImpl);
+            logStart = new BridgeLoggerDelegates.LogStart(LogStartImpl);
+            logStop = new BridgeLoggerDelegates.LogStop(LogStopImpl);
+            logError = new BridgeLoggerDelegates.LogError(LogErrorImpl);
         }
     }
 }
