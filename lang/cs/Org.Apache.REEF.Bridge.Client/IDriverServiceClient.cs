@@ -16,14 +16,22 @@
 // under the License.
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace Org.Apache.REEF.Bridge.Client
 {
-    class Program
+    /// <summary>
+    /// Forwards application request to driver server.
+    /// </summary>
+    public interface IDriverServiceClient
     {
-        static void Main(string[] args)
-        {
-            Console.WriteLine("Hello World!");
-        }
+        void OnShutdown();
+
+        void OnSuhtdown(Exception ex);
+
+        void OnSetAlarm();
     }
 }

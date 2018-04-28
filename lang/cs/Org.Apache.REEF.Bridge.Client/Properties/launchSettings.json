@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "Org.Apache.REEF.Bridge.Client.DotNet": {
+      "commandName": "Project",
+      "workingDirectory": "E:\\reef\\REEF_LOCAL_RUNTIME"
+    }
+  }
+}
